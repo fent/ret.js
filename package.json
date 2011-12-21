@@ -1,0 +1,28 @@
+{
+  "name": "ret",
+  "description": "Tokenizes a string that represetns a regular expression.",
+  "keywords": ["regex", "regexp", "regular expression", "parser", "tokenizer"],
+  "version": "0.1.0",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/fent/ret.js.git"
+  },
+  "author": "fent (https://github.com/fent)",
+  "main": "./lib/index.js",
+  "scripts": {
+    "test": "vows test/*-test.js --spec"
+  },
+  "directories": {
+    "lib": "./lib"
+  },
+  "engines": {
+    "node": "*"
+  },
+  "devDependencies": {
+    "vows": "0.5.x"
+  },
+  "licenses": [ {
+    "type": "MIT",
+    "url" : "http://github.com/fent/ret.js/raw/master/LICENSE"
+  }]
+}

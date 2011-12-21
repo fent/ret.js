@@ -27,7 +27,7 @@ vows.describe('tokenizeClass')
   .addBatch({
     'Class tokens': {
       topic: function() {
-        return util.tokenizeClass('\\w\\d$\\s\\]\\B.] will ignore');
+        return util.tokenizeClass('\\w\\d$\\s\\]\\B.+-] will ignore');
       },
 
       'Get a words class token': function(t) {
@@ -52,14 +52,16 @@ vows.describe('tokenizeClass')
         assert.deepEqual(t[0][3], classes.whitespace());
       },
 
-      'Get an any character class token': function(t) {
+      'Get correct char tokens at end of class': function(t) {
         assert.isArray(t[0]);
-        assert.deepEqual(t[0][6], classes.anyChar());
+        assert.deepEqual(t[0][6], { type: types.CHAR, value: 46 });
+        assert.deepEqual(t[0][7], { type: types.CHAR, value: 43 });
+        assert.deepEqual(t[0][8], { type: types.CHAR, value: 45 });
       },
 
       'Get correct position of closing brace': function(t) {
         assert.isNumber(t[1]);
-        assert.equal(t[1], 13);
+        assert.equal(t[1], 15);
       }
     },
 

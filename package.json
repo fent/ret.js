@@ -1,6 +1,6 @@
 {
   "name": "ret",
-  "description": "Tokenizes a string that represetns a regular expression.",
+  "description": "Tokenizes a string that represents a regular expression.",
   "keywords": ["regex", "regexp", "regular expression", "parser", "tokenizer"],
   "version": "0.1.2",
   "repository": {

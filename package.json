@@ -2,7 +2,7 @@
   "name": "ret",
   "description": "Tokenizes a string that represetns a regular expression.",
   "keywords": ["regex", "regexp", "regular expression", "parser", "tokenizer"],
-  "version": "0.1.1",
+  "version": "0.1.2",
   "repository": {
     "type": "git",
     "url": "git://github.com/fent/ret.js.git"

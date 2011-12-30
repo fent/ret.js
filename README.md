@@ -74,7 +74,7 @@ Contains a key `set` specifying what tokens are allowed and a key `not` specifyi
 
 ```js
 {
-    "type": ret.typs.SET
+    "type": ret.types.SET
   , "set": [token]
   , "not": false
 }

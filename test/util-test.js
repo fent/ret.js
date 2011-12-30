@@ -27,15 +27,15 @@ vows.describe('tokenizeClass')
   .addBatch({
     'Class tokens': {
       topic: function() {
-        return util.tokenizeClass('\\w\\d$\\s\\]\\B.+-] will ignore');
+        return util.tokenizeClass('\\w\\d$\\s\\]\\B\\W\\D\\S.+-] will ignore');
       },
 
-      'Get a words class token': function(t) {
+      'Get a words set token': function(t) {
         assert.isArray(t[0]);
         assert.deepEqual(t[0][0], sets.words());
       },
 
-      'Get an integers class token': function(t) {
+      'Get an integers set token': function(t) {
         assert.isArray(t[0]);
         assert.deepEqual(t[0][1], sets.ints());
       },
@@ -47,21 +47,28 @@ vows.describe('tokenizeClass')
         assert.deepEqual(t[0][5], { type: types.CHAR, value: 66 });
       },
 
-      'Get a whitespace class token': function(t) {
+      'Get a whitespace set token': function(t) {
         assert.isArray(t[0]);
         assert.deepEqual(t[0][3], sets.whitespace());
       },
 
-      'Get correct char tokens at end of class': function(t) {
+      'Get negated sets': function(t) {
         assert.isArray(t[0]);
-        assert.deepEqual(t[0][6], { type: types.CHAR, value: 46 });
-        assert.deepEqual(t[0][7], { type: types.CHAR, value: 43 });
-        assert.deepEqual(t[0][8], { type: types.CHAR, value: 45 });
+        assert.deepEqual(t[0][6], sets.notWords());
+        assert.deepEqual(t[0][7], sets.notInts());
+        assert.deepEqual(t[0][8], sets.notWhitespace());
+      },
+
+      'Get correct char tokens at end of set': function(t) {
+        assert.isArray(t[0]);
+        assert.deepEqual(t[0][9], { type: types.CHAR, value: 46 });
+        assert.deepEqual(t[0][10], { type: types.CHAR, value: 43 });
+        assert.deepEqual(t[0][11], { type: types.CHAR, value: 45 });
       },
 
       'Get correct position of closing brace': function(t) {
         assert.isNumber(t[1]);
-        assert.equal(t[1], 15);
+        assert.equal(t[1], 21);
       }
     },
 

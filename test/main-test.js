@@ -1,6 +1,6 @@
 var vows    = require('vows')
   , assert  = require('assert')
-  , classes = require('../lib/classes')
+  , sets    = require('../lib/sets')
   , ret     = require('..')
   , types   = ret.types
   ;
@@ -70,13 +70,13 @@ vows.describe('Regexp Tokenizer')
     },
 
 
-    'Predefined classes': {
+    'Predefined sets': {
       'that represent a typical date format': {
         topic: ret('\\w \\d:\\d:\\d'),
 
         'Words class': function(t) {
           assert.isArray(t.stack);
-          assert.deepEqual(t.stack[0], classes.words());
+          assert.deepEqual(t.stack[0], sets.words());
         },
 
         'Followed by a space': function(t) {
@@ -87,9 +87,9 @@ vows.describe('Regexp Tokenizer')
           });
         },
 
-        'Integer classes': function(t) {
+        'Integer sets': function(t) {
           assert.isArray(t.stack);
-          var ints = classes.ints();
+          var ints = sets.ints();
           assert.deepEqual(t.stack[2], ints);
           assert.deepEqual(t.stack[4], ints);
           assert.deepEqual(t.stack[6], ints);
@@ -108,7 +108,7 @@ vows.describe('Regexp Tokenizer')
     },
 
 
-    'Custom classes': {
+    'Custom sets': {
       'topic': ret('[$!a-z123] thing [^0-9]'),
 
       'Class contains all characters and range': function(t) {
@@ -116,7 +116,7 @@ vows.describe('Regexp Tokenizer')
             type: types.ROOT
           , stack: [
               {
-                type: types.CLASS
+                type: types.SET
               , set: [
                     { type: types.CHAR, value: '$'.charCodeAt(0) }
                   , { type: types.CHAR, value: '!'.charCodeAt(0) }
@@ -141,7 +141,7 @@ vows.describe('Regexp Tokenizer')
             , { type: types.CHAR, value: ' '.charCodeAt(0) }
 
             , {
-                type: types.CLASS
+                type: types.SET
               , set: [{
                   type: types.RANGE
                 , from: '0'.charCodeAt(0)
@@ -430,10 +430,10 @@ vows.describe('Regexp Tokenizer')
                 { type: types.CHAR, value: '<'.charCodeAt(0) }
               , { type: types.GROUP, remember: true
                 , stack: [{ type: types.REPETITION, min: 1, max: Infinity
-                  , value: classes.words()}] }
+                  , value: sets.words()}] }
               , { type: types.CHAR, value: '>'.charCodeAt(0) }
               , { type: types.REPETITION, min: 0, max: Infinity
-                , value: classes.words() }
+                , value: sets.words() }
               , { type: types.CHAR, value: '<'.charCodeAt(0) }
               , { type: types.REFERENCE, value: 1 }
               , { type: types.CHAR, value: '>'.charCodeAt(0) }

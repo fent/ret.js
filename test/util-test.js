@@ -2,7 +2,7 @@ var    vows = require('vows')
   ,  assert = require('assert')
   ,    util = require('../lib/util')
   ,   types = require('..').types
-  , classes = require('../lib/classes')
+  , sets = require('../lib/sets')
   ;
 
 
@@ -32,12 +32,12 @@ vows.describe('tokenizeClass')
 
       'Get a words class token': function(t) {
         assert.isArray(t[0]);
-        assert.deepEqual(t[0][0], classes.words());
+        assert.deepEqual(t[0][0], sets.words());
       },
 
       'Get an integers class token': function(t) {
         assert.isArray(t[0]);
-        assert.deepEqual(t[0][1], classes.ints());
+        assert.deepEqual(t[0][1], sets.ints());
       },
 
       'Get some char tokens': function(t) {
@@ -49,7 +49,7 @@ vows.describe('tokenizeClass')
 
       'Get a whitespace class token': function(t) {
         assert.isArray(t[0]);
-        assert.deepEqual(t[0][3], classes.whitespace());
+        assert.deepEqual(t[0][3], sets.whitespace());
       },
 
       'Get correct char tokens at end of class': function(t) {

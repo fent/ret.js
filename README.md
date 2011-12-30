@@ -68,13 +68,13 @@ Like root, it can contain an `options` key instead of `stack` if there is a pipe
 }
 ```
 
-### CLASS
+### SET
 
 Contains a key `set` specifying what tokens are allowed and a key `not` specifying if the set should be negated.
 
 ```js
 {
-    "type": ret.typs.CLASS
+    "type": ret.typs.SET
   , "set": [token]
   , "not": false
 }
@@ -82,7 +82,7 @@ Contains a key `set` specifying what tokens are allowed and a key `not` specifyi
 
 ### RANGE
 
-Used in class tokens to specify a character range. `from` and `to` are character codes.
+Used in set tokens to specify a character range. `from` and `to` are character codes.
 
 ```js
 {

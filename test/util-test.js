@@ -94,6 +94,21 @@ vows.describe('tokenizeClass')
           , to: 57
         });
       }
+    },
+
+    'Ranges with escaped characters': {
+      topic: function() {
+        return util.tokenizeClass('\\\\-~]')
+      },
+
+      'Get escaped backslash range': function(t) {
+        assert.isArray(t[0]);
+        assert.deepEqual(t[0][0], {
+            type: types.RANGE
+          , from: 92
+          , to: 126
+        });
+      }
     }
   })
   .export(module);

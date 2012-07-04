@@ -15,9 +15,6 @@
   "directories": {
     "lib": "./lib"
   },
-  "engines": {
-    "node": "*"
-  },
   "devDependencies": {
     "vows": "0.5.x"
   },

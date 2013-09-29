@@ -56,10 +56,8 @@ vows.describe('Regexp Tokenizer Errors')
     'Bad grouping': {
       'unmatched': macro('hey(yoo))', 'Unmatched )',
         'Unmatched ) at column 8'),
-        /*
       'unclosed': macro('(', 'Unterminated group',
         'Unterminated group'),
-        */
     },
 
     'Wrong group type': macro('abcde(?>hellow)', 'Invalid character',

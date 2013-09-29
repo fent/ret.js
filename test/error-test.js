@@ -1,64 +1,71 @@
-var vows    = require('vows');
-var assert  = require('assert');
-var ret     = require('..');
+var vows   = require('vows');
+var assert = require('assert');
+var ret    = require('..');
 
 
-var macro = function(regexp) {
+/**
+ * @param {String} regexp
+ */
+function topicMacro(regexp) {
   try {
     ret(regexp);
   } catch (err) {
     return err;
   }
-};
+}
+
+
+/**
+ * @param {String} regexp
+ * @param {String} message
+ * @return {Function(Error)}
+ */
+function errMacro(regexp, message) {
+  message = 'Invalid regular expression: /' + regexp + '/: ' + message;
+  return function(err) {
+    assert.isObject(err);
+    assert.include(err, 'message');
+    assert.equal(err.message, message);
+  };
+}
+
+
+/**
+ * @param {String} regexp
+ * @param {String} name
+ * @param {String} message
+ * @return {Object}
+ */
+function macro(regexp, name, message) {
+  var obj = { topic: topicMacro(regexp) };
+  obj[name] = errMacro(regexp, message);
+  return obj;
+}
 
 
 vows.describe('Regexp Tokenizer Errors')
   .addBatch({
     'Bad repetiion at beginning of': {
-      'regexp': {
-        topic: macro('?what'),
-        'Nothing to repeat': function(err) {
-          assert.isObject(err);
-          assert.include(err, 'message');
-          assert.equal(err.message, 'Invalid regular expression: /?what/: Nothing to repeat at column 0');
-        }
-      },
+      'regexp': macro('?what', 'Nothing to repeat',
+        'Nothing to repeat at column 0'),
 
-      'group': {
-        topic: macro('foo(*\\w)'),
-        'Nothing to repeat': function(err) {
-          assert.isObject(err);
-          assert.include(err, 'message');
-          assert.equal(err.message, 'Invalid regular expression: /foo(*\\w)/: Nothing to repeat at column 4');
-        }
-      }
+      'group': macro('foo(*\\w)', 'Nothing to repeat',
+        'Nothing to repeat at column 4'),
     },
 
     'Bad grouping': {
-      topic: macro('hey(yoo))'),
-      'Unmatched )': function(err) {
-        assert.isObject(err);
-        assert.include(err, 'message');
-        assert.equal(err.message, 'Invalid regular expression: /hey(yoo))/: Unmatched ) at column 8');
-      }
+      'unmatched': macro('hey(yoo))', 'Unmatched )',
+        'Unmatched ) at column 8'),
+        /*
+      'unclosed': macro('(', 'Unterminated group',
+        'Unterminated group'),
+        */
     },
 
-    'Wrong group type': {
-      topic: macro('abcde(?>hellow)'),
-      'Invalid character': function(err) {
-        assert.isObject(err);
-        assert.include(err, 'message');
-        assert.equal(err.message, 'Invalid regular expression: /abcde(?>hellow)/: Invalid group, character \'>\' after \'?\' at column 7');
-      }
-    },
+    'Wrong group type': macro('abcde(?>hellow)', 'Invalid character',
+      'Invalid group, character \'>\' after \'?\' at column 7'),
 
-    'Bad custom character set': {
-      topic: macro('[abc'),
-      'Missing ]': function(err) {
-        assert.isObject(err);
-        assert.include(err, 'message');
-        assert.equal(err.message, 'Invalid regular expression: /[abc/: Unterminated character class');
-      }
-    }
+    'Bad custom character set': macro('[abc', 'Unterminated character class',
+      'Unterminated character class'),
   })
   .export(module);

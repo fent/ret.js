@@ -127,7 +127,7 @@ Represents a single character token. `value` is the character code. This might s
 ## Errors
 ret.js will throw errors if given a string with an invalid regular expression. All possible errors are
 
-* Invalid character. When a group with an immediate `?` character is followed by an invalid character. It can only be followed by `!`, `=`, or `:`. Example: `/(?$abc)/`
+* Invalid group. When a group with an immediate `?` character is followed by an invalid character. It can only be followed by `!`, `=`, or `:`. Example: `/(?$abc)/`
 * Nothing to repeat. Thrown when a repetitional token is used as the first token in the current clause, as in right in the beginning of the regexp or right after a pipe. Example: `/foo|?bar/`
 * Unmatched ). A group was not closed. Example: `/(1(23)4/`
 * Missing ]. A custom character set was not closed. Example: `/[abc/`

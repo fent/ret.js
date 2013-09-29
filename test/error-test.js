@@ -1,7 +1,6 @@
-var vows    = require('vows')
-  , assert  = require('assert')
-  , ret     = require('..')
-  ;
+var vows    = require('vows');
+var assert  = require('assert');
+var ret     = require('..');
 
 
 var macro = function(regexp) {

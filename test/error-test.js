@@ -49,7 +49,7 @@ vows.describe('Regexp Tokenizer Errors')
       'Invalid character': function(err) {
         assert.isObject(err);
         assert.include(err, 'message');
-        assert.equal(err.message, 'Invalid regular expression: /abcde(?>hellow)/: Invalid character \'>\' after \'?\' at column 7');
+        assert.equal(err.message, 'Invalid regular expression: /abcde(?>hellow)/: Invalid group, character \'>\' after \'?\' at column 7');
       }
     },
 
@@ -58,7 +58,7 @@ vows.describe('Regexp Tokenizer Errors')
       'Missing ]': function(err) {
         assert.isObject(err);
         assert.include(err, 'message');
-        assert.equal(err.message, 'Invalid regular expression: /[abc/: Missing \']\'');
+        assert.equal(err.message, 'Invalid regular expression: /[abc/: Unterminated character class');
       }
     }
   })

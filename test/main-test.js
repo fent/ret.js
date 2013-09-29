@@ -1,9 +1,8 @@
-var vows    = require('vows')
-  , assert  = require('assert')
-  , sets    = require('../lib/sets')
-  , ret     = require('..')
-  , types   = ret.types
-  ;
+var vows   = require('vows');
+var assert = require('assert');
+var sets   = require('../lib/sets');
+var ret    = require('..');
+var types  = ret.types;
 
 
 vows.describe('Regexp Tokenizer')

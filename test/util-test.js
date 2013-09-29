@@ -1,9 +1,8 @@
-var    vows = require('vows')
-  ,  assert = require('assert')
-  ,    util = require('../lib/util')
-  ,   types = require('..').types
-  , sets = require('../lib/sets')
-  ;
+var vows   = require('vows');
+var assert = require('assert');
+var util   = require('../lib/util');
+var types  = require('..').types;
+var sets   = require('../lib/sets');
 
 
 vows.describe('strToChars')
@@ -15,7 +14,7 @@ vows.describe('strToChars')
       },
 
       'Returned string has converted characters': function(str) {
-        assert.equal(str, 
+        assert.equal(str,
           '\xFF hellow \u00A3 \\( there  \n \\w');
       }
     }

@@ -153,6 +153,34 @@ vows.describe('Regexp Tokenizer')
       }
     },
 
+    'Two sets in a row with dash in between': {
+      'topic': ret('[01]-[ab]'),
+      'Contains both classes and no range': function(t) {
+        assert.deepEqual(t, {
+            type: types.ROOT
+          , stack: [
+              {
+                type: types.SET
+              , set: [
+                  { type: types.CHAR, value: '0'.charCodeAt(0) }
+                , { type: types.CHAR, value: '1'.charCodeAt(0) }
+                ]
+              , not: false
+              }
+            , { type: types.CHAR, value: '-'.charCodeAt(0) }
+            , {
+                type: types.SET
+              , set: [
+                  { type: types.CHAR, value: 'a'.charCodeAt(0) }
+                , { type: types.CHAR, value: 'b'.charCodeAt(0) }
+              ]
+              , not: false
+              }
+            ]
+        });
+      }
+    },
+
 
     '| (Pipe)': {
       topic: ret('foo|bar'),

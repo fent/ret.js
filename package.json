@@ -16,7 +16,7 @@
     "lib": "./lib"
   },
   "devDependencies": {
-    "vows": "0.5.x"
+    "vows": "0.7.x"
   },
   "licenses": [ {
     "type": "MIT",

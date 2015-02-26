@@ -22,7 +22,7 @@
     "lib": "./lib"
   },
   "devDependencies": {
-    "vows": "0.7.x"
+    "vows": "*"
   },
   "licenses": [
     {

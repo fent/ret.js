@@ -1,9 +1,11 @@
-# Regular Expression Tokenizer [![Build Status](https://secure.travis-ci.org/fent/ret.js.png)](http://travis-ci.org/fent/ret.js)
+# Regular Expression Tokenizer
 
 Tokenizes strings that represent a regular expressions.
 
+[![Build Status](https://secure.travis-ci.org/fent/ret.js.png)](http://travis-ci.org/fent/ret.js) [![Dependency Status](https://gemnasium.com/fent/ret.js.svg)](https://gemnasium.com/fent/ret.js)
 
 # Usage
+
 ```js
 var ret = require('ret');
 
@@ -27,6 +29,7 @@ var tokens = ret(/foo|bar/.source);
 ```
 
 # Token Types
+
 `ret.types` is a collection of the various token types exported by ret.
 
 ### ROOT
@@ -125,6 +128,7 @@ Represents a single character token. `value` is the character code. This might s
 ```
 
 ## Errors
+
 ret.js will throw errors if given a string with an invalid regular expression. All possible errors are
 
 * Invalid group. When a group with an immediate `?` character is followed by an invalid character. It can only be followed by `!`, `=`, or `:`. Example: `/(?$abc)/`
@@ -139,6 +143,7 @@ ret.js will throw errors if given a string with an invalid regular expression. A
 
 
 # Tests
+
 Tests are written with [vows](http://vowsjs.org/)
 
 ```bash
@@ -146,4 +151,5 @@ npm test
 ```
 
 # License
+
 MIT

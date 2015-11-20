@@ -17,7 +17,18 @@ vows.describe('strToChars')
         assert.equal(str,
           '\xFF hellow \u00A3 \\( there  \n \\w');
       }
-    }
+    },
+    'Escaped chars in regex source remain espaced': {
+      topic: function() {
+        return util.strToChars(
+          /\\xFF hellow \\u00A3 \\50 there \\cB \\n \\w/.source);
+      },
+
+      'Returned string has escaped characters': function(str) {
+        assert.equal(str,
+          '\\\\xFF hellow \\\\u00A3 \\\\50 there \\\\cB \\\\n \\\\w');
+      }
+    },
   })
   .export(module);
 

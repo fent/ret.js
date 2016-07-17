@@ -90,33 +90,33 @@ vows.describe('tokenizeClass')
       'Get alphabetic range': function(t) {
         assert.isArray(t[0]);
         assert.deepEqual(t[0][0], {
-            type: types.RANGE
-          , from: 97
-          , to: 122
+          type: types.RANGE,
+          from: 97,
+          to: 122,
         });
       },
 
       'Get numeric range': function(t) {
         assert.isArray(t[0]);
         assert.deepEqual(t[0][1], {
-            type: types.RANGE
-          , from: 48
-          , to: 57
+          type: types.RANGE,
+          from: 48,
+          to: 57,
         });
       }
     },
 
     'Ranges with escaped characters': {
       topic: function() {
-        return util.tokenizeClass('\\\\-~]')
+        return util.tokenizeClass('\\\\-~]');
       },
 
       'Get escaped backslash range': function(t) {
         assert.isArray(t[0]);
         assert.deepEqual(t[0][0], {
-            type: types.RANGE
-          , from: 92
-          , to: 126
+          type: types.RANGE,
+          from: 92,
+          to: 126,
         });
       }
     }

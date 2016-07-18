@@ -5,6 +5,14 @@ var ret    = require('..');
 var types  = ret.types;
 
 
+function char(c) {
+  return { type: types.CHAR, value: c.charCodeAt(0) };
+}
+
+function charStr(str) {
+  return str.split('').map(char);
+}
+
 vows.describe('Regexp Tokenizer')
   .addBatch({
     'No special characters': {
@@ -13,15 +21,7 @@ vows.describe('Regexp Tokenizer')
       'List of char tokens': function(t) {
         assert.deepEqual(t, {
           type: types.ROOT,
-          stack: [
-            { type: types.CHAR, value: 'w'.charCodeAt(0) },
-            { type: types.CHAR, value: 'a'.charCodeAt(0) },
-            { type: types.CHAR, value: 'l'.charCodeAt(0) },
-            { type: types.CHAR, value: 'n'.charCodeAt(0) },
-            { type: types.CHAR, value: 'u'.charCodeAt(0) },
-            { type: types.CHAR, value: 't'.charCodeAt(0) },
-            { type: types.CHAR, value: 's'.charCodeAt(0) }
-          ],
+          stack: charStr('walnuts'),
         });
       }
     },
@@ -36,10 +36,10 @@ vows.describe('Regexp Tokenizer')
               type: types.ROOT,
               stack: [
                 { type: types.POSITION, value: '^' },
-                { type: types.CHAR, value: 'y'.charCodeAt(0) },
-                { type: types.CHAR, value: 'e'.charCodeAt(0) },
-                { type: types.CHAR, value: 's'.charCodeAt(0) },
-                { type: types.POSITION, value: '$' }
+                char('y'),
+                char('e'),
+                char('s'),
+                { type: types.POSITION, value: '$' },
               ],
             });
           }
@@ -47,21 +47,22 @@ vows.describe('Regexp Tokenizer')
       },
 
       '\\b and \\B': {
-        topic: ret('\\bbeginning'),
+        topic: ret('\\bbeginning\\B'),
         'Word boundary at beginning': function(t) {
           assert.deepEqual(t, {
             type: types.ROOT,
             stack: [
               { type: types.POSITION, value: 'b' },
-              { type: types.CHAR, value: 'b'.charCodeAt(0) },
-              { type: types.CHAR, value: 'e'.charCodeAt(0) },
-              { type: types.CHAR, value: 'g'.charCodeAt(0) },
-              { type: types.CHAR, value: 'i'.charCodeAt(0) },
-              { type: types.CHAR, value: 'n'.charCodeAt(0) },
-              { type: types.CHAR, value: 'n'.charCodeAt(0) },
-              { type: types.CHAR, value: 'i'.charCodeAt(0) },
-              { type: types.CHAR, value: 'n'.charCodeAt(0) },
-              { type: types.CHAR, value: 'g'.charCodeAt(0) }
+              char('b'),
+              char('e'),
+              char('g'),
+              char('i'),
+              char('n'),
+              char('n'),
+              char('i'),
+              char('n'),
+              char('g'),
+              { type: types.POSITION, value: 'B' },
             ],
           });
         }
@@ -70,40 +71,42 @@ vows.describe('Regexp Tokenizer')
 
 
     'Predefined sets': {
-      'that represent a typical date format': {
-        topic: ret('\\w \\d:\\d:\\d'),
+      topic: ret('\\w\\W\\d\\D\\s\\S.'),
 
-        'Words class': function(t) {
-          assert.isArray(t.stack);
-          assert.deepEqual(t.stack[0], sets.words());
-        },
+      'Words set': function(t) {
+        assert.isArray(t.stack);
+        assert.deepEqual(t.stack[0], sets.words());
+      },
 
-        'Followed by a space': function(t) {
-          assert.isArray(t.stack);
-          assert.deepEqual(t.stack[1], {
-            type: types.CHAR,
-            value: ' '.charCodeAt(0),
-          });
-        },
+      'Non-Words set': function(t) {
+        assert.isArray(t.stack);
+        assert.deepEqual(t.stack[1], sets.notWords());
+      },
 
-        'Integer sets': function(t) {
-          assert.isArray(t.stack);
-          var ints = sets.ints();
-          assert.deepEqual(t.stack[2], ints);
-          assert.deepEqual(t.stack[4], ints);
-          assert.deepEqual(t.stack[6], ints);
-        },
+      'Integer set': function(t) {
+        assert.isArray(t.stack);
+        assert.deepEqual(t.stack[2], sets.ints());
+      },
 
-        'Colons inbetween': function(t) {
-          assert.isArray(t.stack);
-          var colon = {
-            type: types.CHAR,
-            value: ':'.charCodeAt(0),
-          };
-          assert.deepEqual(t.stack[3], colon);
-          assert.deepEqual(t.stack[5], colon);
-        }
-      }
+      'Non-Integer set': function(t) {
+        assert.isArray(t.stack);
+        assert.deepEqual(t.stack[3], sets.notInts());
+      },
+
+      'Whitespace set': function(t) {
+        assert.isArray(t.stack);
+        assert.deepEqual(t.stack[4], sets.whitespace());
+      },
+
+      'Non-Whitespace set': function(t) {
+        assert.isArray(t.stack);
+        assert.deepEqual(t.stack[5], sets.notWhitespace());
+      },
+
+      'Any character set': function(t) {
+        assert.isArray(t.stack);
+        assert.deepEqual(t.stack[6], sets.anyChar());
+      },
     },
 
 
@@ -114,33 +117,30 @@ vows.describe('Regexp Tokenizer')
         assert.deepEqual(t, {
           type: types.ROOT,
           stack: [
-            {
-              type: types.SET,
+            { type: types.SET,
               set: [
-                { type: types.CHAR, value: '$'.charCodeAt(0) },
-                { type: types.CHAR, value: '!'.charCodeAt(0) },
-                {
-                  type: types.RANGE,
+                char('$'),
+                char('!'),
+                { type: types.RANGE,
                   from: 'a'.charCodeAt(0),
                   to: 'z'.charCodeAt(0),
                 },
-                { type: types.CHAR, value: '1'.charCodeAt(0) },
-                { type: types.CHAR, value: '2'.charCodeAt(0) },
-                { type: types.CHAR, value: '3'.charCodeAt(0) }
+                char('1'),
+                char('2'),
+                char('3'),
               ],
               not: false,
             },
 
-            { type: types.CHAR, value: ' '.charCodeAt(0) },
-            { type: types.CHAR, value: 't'.charCodeAt(0) },
-            { type: types.CHAR, value: 'h'.charCodeAt(0) },
-            { type: types.CHAR, value: 'i'.charCodeAt(0) },
-            { type: types.CHAR, value: 'n'.charCodeAt(0) },
-            { type: types.CHAR, value: 'g'.charCodeAt(0) },
-            { type: types.CHAR, value: ' '.charCodeAt(0) },
+            char(' '),
+            char('t'),
+            char('h'),
+            char('i'),
+            char('n'),
+            char('g'),
+            char(' '),
 
-            {
-              type: types.SET,
+            { type: types.SET,
               set: [{
                 type: types.RANGE,
                 from: '0'.charCodeAt(0),
@@ -159,21 +159,13 @@ vows.describe('Regexp Tokenizer')
         assert.deepEqual(t, {
           type: types.ROOT,
           stack: [
-            {
-              type: types.SET,
-              set: [
-                { type: types.CHAR, value: '0'.charCodeAt(0) },
-                { type: types.CHAR, value: '1'.charCodeAt(0) }
-              ],
+            { type: types.SET,
+              set: charStr('01'),
               not: false,
             },
-            { type: types.CHAR, value: '-'.charCodeAt(0) },
-            {
-              type: types.SET,
-              set: [
-                { type: types.CHAR, value: 'a'.charCodeAt(0) },
-                { type: types.CHAR, value: 'b'.charCodeAt(0) }
-              ],
+            char('-'),
+            { type: types.SET,
+              set: charStr('ab'),
               not: false,
             }
           ],
@@ -183,22 +175,15 @@ vows.describe('Regexp Tokenizer')
 
 
     '| (Pipe)': {
-      topic: ret('foo|bar'),
+      topic: ret('foo|bar|za'),
 
       'Returns root object with options': function(t) {
         assert.deepEqual(t, {
           type: types.ROOT,
           options: [
-            [
-              { type: types.CHAR, value: 'f'.charCodeAt(0) },
-              { type: types.CHAR, value: 'o'.charCodeAt(0) },
-              { type: types.CHAR, value: 'o'.charCodeAt(0) }
-            ],
-            [
-              { type: types.CHAR, value: 'b'.charCodeAt(0) },
-              { type: types.CHAR, value: 'a'.charCodeAt(0) },
-              { type: types.CHAR, value: 'r'.charCodeAt(0) }
-            ]
+            charStr('foo'),
+            charStr('bar'),
+            charStr('za'),
           ],
         });
       }
@@ -213,20 +198,13 @@ vows.describe('Regexp Tokenizer')
           assert.deepEqual(t, {
             type: types.ROOT,
             stack: [
-              { type: types.CHAR, value: 'h'.charCodeAt(0) },
-              { type: types.CHAR, value: 'e'.charCodeAt(0) },
-              { type: types.CHAR, value: 'y'.charCodeAt(0) },
-              { type: types.CHAR, value: ' '.charCodeAt(0) },
-              {
-                type: types.GROUP,
+              char('h'),
+              char('e'),
+              char('y'),
+              char(' '),
+              { type: types.GROUP,
                 remember: true,
-                stack: [
-                  { type: types.CHAR, value: 't'.charCodeAt(0) },
-                  { type: types.CHAR, value: 'h'.charCodeAt(0) },
-                  { type: types.CHAR, value: 'e'.charCodeAt(0) },
-                  { type: types.CHAR, value: 'r'.charCodeAt(0) },
-                  { type: types.CHAR, value: 'e'.charCodeAt(0) },
-                ],
+                stack: charStr('there'),
               }
             ],
           });
@@ -242,13 +220,7 @@ vows.describe('Regexp Tokenizer')
             stack: [{
               type: types.GROUP,
               remember: false,
-              stack: [
-                { type: types.CHAR, value: 'l'.charCodeAt(0) },
-                { type: types.CHAR, value: 'o'.charCodeAt(0) },
-                { type: types.CHAR, value: 'n'.charCodeAt(0) },
-                { type: types.CHAR, value: 'e'.charCodeAt(0) },
-                { type: types.CHAR, value: 'r'.charCodeAt(0) }
-              ],
+              stack: charStr('loner'),
             }]
           });
         }
@@ -261,20 +233,36 @@ vows.describe('Regexp Tokenizer')
           assert.deepEqual(t, {
             type: types.ROOT,
             stack: [
-              { type: types.CHAR, value: 'w'.charCodeAt(0) },
-              { type: types.CHAR, value: 'h'.charCodeAt(0) },
-              { type: types.CHAR, value: 'a'.charCodeAt(0) },
-              { type: types.CHAR, value: 't'.charCodeAt(0) },
-              {
-                type: types.GROUP,
+              char('w'),
+              char('h'),
+              char('a'),
+              char('t'),
+              { type: types.GROUP,
                 remember: false,
                 notFollowedBy: true,
-                stack: [
-                  { type: types.CHAR, value: 'e'.charCodeAt(0) },
-                  { type: types.CHAR, value: 'v'.charCodeAt(0) },
-                  { type: types.CHAR, value: 'e'.charCodeAt(0) },
-                  { type: types.CHAR, value: 'r'.charCodeAt(0) }
-                ],
+                stack: charStr('ever'),
+              }
+            ],
+          });
+        }
+      },
+
+      'matched next clause': {
+        topic: ret('hello(?= there)'),
+
+        'Returns a group': function(t) {
+          assert.deepEqual(t, {
+            type: types.ROOT,
+            stack: [
+              char('h'),
+              char('e'),
+              char('l'),
+              char('l'),
+              char('o'),
+              { type: types.GROUP,
+                remember: false,
+                followedBy: true,
+                stack: charStr(' there'),
               }
             ],
           });
@@ -282,35 +270,33 @@ vows.describe('Regexp Tokenizer')
       },
 
       'with subgroup': {
-        topic: ret('a(b(c(?:d))fg) @_@'),
+        topic: ret('a(b(c|(?:d))fg) @_@'),
 
         'Groups within groups': function(t) {
           assert.deepEqual(t, {
             type: types.ROOT,
             stack: [
-              { type: types.CHAR, value: 'a'.charCodeAt(0) },
+              char('a'),
               { type: types.GROUP,
                 remember: true,
                 stack: [
-                  { type: types.CHAR, value: 'b'.charCodeAt(0) },
+                  char('b'),
                   { type: types.GROUP,
                     remember: true,
-                    stack: [
-                      { type: types.CHAR, value: 'c'.charCodeAt(0) },
-                      { type: types.GROUP,
+                    options: [
+                      [char('c')],
+                      [{ type: types.GROUP,
                         remember: false,
-                        stack: [
-                          { type: types.CHAR, value: 'd'.charCodeAt(0) }
-                        ] }
-                  ] },
-                  { type: types.CHAR, value: 'f'.charCodeAt(0) },
-                  { type: types.CHAR, value: 'g'.charCodeAt(0) }
+                        stack: charStr('d') }]
+                    ] },
+                  char('f'),
+                  char('g'),
                 ] },
 
-              { type: types.CHAR, value: ' '.charCodeAt(0) },
-              { type: types.CHAR, value: '@'.charCodeAt(0) },
-              { type: types.CHAR, value: '_'.charCodeAt(0) },
-              { type: types.CHAR, value: '@'.charCodeAt(0) }
+              char(' '),
+              char('@'),
+              char('_'),
+              char('@'),
             ],
           });
         }
@@ -330,12 +316,7 @@ vows.describe('Regexp Tokenizer')
                 value: {
                   type: types.GROUP,
                   remember: false,
-                  stack: [
-                    { type: types.CHAR, value: 'p'.charCodeAt(0) },
-                    { type: types.CHAR, value: 'i'.charCodeAt(0) },
-                    { type: types.CHAR, value: 'k'.charCodeAt(0) },
-                    { type: types.CHAR, value: 'a'.charCodeAt(0) }
-                  ]
+                  stack: charStr('pika')
                 },
               }
             ],
@@ -350,9 +331,9 @@ vows.describe('Regexp Tokenizer')
           assert.deepEqual(t, {
             type: types.ROOT,
             stack: [
-              { type: types.CHAR, value: 'N'.charCodeAt(0) },
+              char('N'),
               { type: types.REPETITION, min: 6, max: Infinity,
-                value: { type: types.CHAR, value: 'O'.charCodeAt(0) }}
+                value: char('O') }
             ],
           });
         }
@@ -364,24 +345,23 @@ vows.describe('Regexp Tokenizer')
         'Min and max differ and min < max': function(t) {
           assert.deepEqual(t, {
             type: types.ROOT,
-            stack: [
-              { type: types.CHAR, value: 'p'.charCodeAt(0) },
-              { type: types.CHAR, value: 'i'.charCodeAt(0) },
-              { type: types.CHAR, value: 'k'.charCodeAt(0) },
-              { type: types.CHAR, value: 'a'.charCodeAt(0) },
-              { type: types.CHAR, value: '.'.charCodeAt(0) },
-              { type: types.CHAR, value: '.'.charCodeAt(0) },
-              { type: types.CHAR, value: '.'.charCodeAt(0) },
-              { type: types.CHAR, value: ' '.charCodeAt(0) },
-              { type: types.CHAR, value: 'c'.charCodeAt(0) },
-              { type: types.CHAR, value: 'h'.charCodeAt(0) },
-              { type: types.REPETITION, min: 3, max: 20,
-                value: { type: types.CHAR, value: 'u'.charCodeAt(0) }},
-              { type: types.REPETITION, min: 1, max: 2,
-                value: { type: types.CHAR, value: '!'.charCodeAt(0) }}
-            ],
+            stack: charStr('pika... ch').concat([
+              { type: types.REPETITION, min: 3, max: 20, value: char('u') },
+              { type: types.REPETITION, min: 1, max: 2, value: char('!') },
+            ]),
           });
         }
+      },
+
+      'Brackets around a non-repetitional': {
+        topic: ret('a{mustache}'),
+
+        'Returns a non-repetitional': function(t) {
+          assert.deepEqual(t, {
+            type: types.ROOT,
+            stack: charStr('a{mustache}'),
+          });
+        },
       }
     },
 
@@ -393,22 +373,14 @@ vows.describe('Regexp Tokenizer')
         'Get back correct min and max': function(t) {
           assert.deepEqual(t, {
               type: types.ROOT,
-              stack: [
-                { type: types.CHAR, value: 'h'.charCodeAt(0) },
-                { type: types.CHAR, value: 'e'.charCodeAt(0) },
-                { type: types.CHAR, value: 'y'.charCodeAt(0) },
+              stack: charStr('hey').concat([
                 { type: types.REPETITION, min: 0, max: 1,
                   value: {
                     type: types.GROUP, remember: false,
-                    stack: [
-                      { type: types.CHAR, value: ' '.charCodeAt(0) },
-                      { type: types.CHAR, value: 'y'.charCodeAt(0) },
-                      { type: types.CHAR, value: 'o'.charCodeAt(0) },
-                      { type: types.CHAR, value: 'u'.charCodeAt(0) }
-                    ]
+                    stack: charStr(' you'),
                   }
                 }
-            ]
+            ]),
           });
         }
       },
@@ -423,11 +395,7 @@ vows.describe('Regexp Tokenizer')
               type: types.REPETITION, min: 1, max: Infinity,
               value: {
                 type: types.GROUP, remember: true,
-                stack: [
-                  { type: types.CHAR, value: 'n'.charCodeAt(0) },
-                  { type: types.CHAR, value: 'o'.charCodeAt(0) },
-                  { type: types.CHAR, value: ' '.charCodeAt(0) }
-                ]
+                stack: charStr('no '),
               }
             }],
           });
@@ -441,10 +409,10 @@ vows.describe('Regexp Tokenizer')
           assert.deepEqual(t, {
             type: types.ROOT,
             stack: [
-              { type: types.CHAR, value: 'X'.charCodeAt(0) },
+              char('X'),
               { type: types.REPETITION, min: 0, max: Infinity,
-                  value: { type: types.CHAR, value: 'F'.charCodeAt(0) }},
-              { type: types.CHAR, value: 'D'.charCodeAt(0) }
+                  value: char('F')},
+              char('D'),
             ],
           });
         }
@@ -459,16 +427,17 @@ vows.describe('Regexp Tokenizer')
         assert.deepEqual(t, {
           type: types.ROOT,
           stack: [
-            { type: types.CHAR, value: '<'.charCodeAt(0) },
+            char('<'),
             { type: types.GROUP, remember: true,
-              stack: [{ type: types.REPETITION, min: 1, max: Infinity,
+              stack: [{
+                type: types.REPETITION, min: 1, max: Infinity,
                 value: sets.words()}] },
-            { type: types.CHAR, value: '>'.charCodeAt(0) },
+            char('>'),
             { type: types.REPETITION, min: 0, max: Infinity,
               value: sets.words() },
-            { type: types.CHAR, value: '<'.charCodeAt(0) },
+            char('<'),
             { type: types.REFERENCE, value: 1 },
-            { type: types.CHAR, value: '>'.charCodeAt(0) }
+            char('>'),
           ],
         });
       }

@@ -10,12 +10,12 @@ vows.describe('strToChars')
     'Convert escaped chars in str to their unescaped versions': {
       topic: function() {
         return util.strToChars(
-          '\\xFF hellow \\u00A3 \\50 there \\cB \\n \\w');
+          '\\xFF hellow \\u00A3 \\50 there \\cB \\n \\w [\\b]');
       },
 
       'Returned string has converted characters': function(str) {
         assert.equal(str,
-          '\xFF hellow \u00A3 \\( there  \n \\w');
+          '\xFF hellow \u00A3 \\( there  \n \\w \u0008');
       }
     },
     'Escaped chars in regex source remain espaced': {

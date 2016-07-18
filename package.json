@@ -16,12 +16,13 @@
   "author": "fent (https://github.com/fent)",
   "main": "./lib/index.js",
   "scripts": {
-    "test": "vows test/*-test.js --spec"
+    "test": "istanbul cover vows test/*-test.js --spec"
   },
   "directories": {
     "lib": "./lib"
   },
   "devDependencies": {
+    "istanbul": "*",
     "vows": "*"
   },
   "licenses": [

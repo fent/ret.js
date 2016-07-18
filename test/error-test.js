@@ -51,6 +51,12 @@ vows.describe('Regexp Tokenizer Errors')
 
       'group': macro('foo(*\\w)', 'Nothing to repeat',
         'Nothing to repeat at column 4'),
+
+      'pipe': macro('foo|+bar', 'Nothing to repeat',
+        'Nothing to repeat at column 4'),
+
+      'with custom repetitional': macro('ok({3}no)', 'Nothing to repeat',
+        'Nothing to repeat at column 3'),
     },
 
     'Bad grouping': {

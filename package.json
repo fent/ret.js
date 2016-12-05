@@ -25,10 +25,5 @@
     "istanbul": "*",
     "vows": "*"
   },
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "http://github.com/fent/ret.js/raw/master/LICENSE"
-    }
-  ]
+  "license": "MIT"
 }

@@ -45,11 +45,32 @@ Only used in the root of the regexp. This is needed due to the posibility of the
 }
 ```
 
+```js
+{
+  "type": ret.types.ROOT,
+  "options" [
+    [token1, token2...],
+    [othertoken1, othertoken2...]
+    ...
+  ],
+}
+```
+
 ### GROUP
 
 Groups contain tokens that are inside of a parenthesis. If the group begins with `?` followed by another character, it's a special type of group. A ':' tells the group not to be remembered when `exec` is used. '=' means the previous token matches only if followed by this group, and '!' means the previous token matches only if NOT followed.
 
 Like root, it can contain an `options` key instead of `stack` if there is a pipe.
+
+```js
+{
+  "type": ret.types.GROUP,
+  "remember" true,
+  "followedBy": false,
+  "notFollowedBy": false,
+  "stack": [token1, token2...],
+}
+```
 
 ```js
 {

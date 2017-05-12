@@ -20,12 +20,12 @@ var tokens = ret(/foo|bar/.source);
 {
   "type": ret.types.ROOT
   "options": [
-    [ { "type": ret.types.CHAR, "value", 102 }
-    , { "type": ret.types.CHAR, "value", 111 }
-    , { "type": ret.types.CHAR, "value", 111 } ],
-    [ { "type": ret.types.CHAR, "value",  98 }
-    , { "type": ret.types.CHAR, "value",  97 }
-    , { "type": ret.types.CHAR, "value", 114 } ]
+    [ { "type": ret.types.CHAR, "value", 102 },
+      { "type": ret.types.CHAR, "value", 111 },
+      { "type": ret.types.CHAR, "value", 111 } ],
+    [ { "type": ret.types.CHAR, "value",  98 },
+      { "type": ret.types.CHAR, "value",  97 },
+      { "type": ret.types.CHAR, "value", 114 } ]
   ]
 }
 ```
@@ -41,8 +41,8 @@ Only used in the root of the regexp. This is needed due to the posibility of the
 
 ```js
 {
-    "type": ret.types.ROOT
-  , "stack": [token]
+  "type": ret.types.ROOT,
+  "stack": [token],
 }
 ```
 
@@ -54,11 +54,11 @@ Like root, it can contain an `options` key instead of `stack` if there is a pipe
 
 ```js
 {
-    "type": ret.types.GROUP
-  , "remember" true
-  , "followedBy": false
-  , "notFollowedBy": false
-  , "options" [[token]]
+  "type": ret.types.GROUP,
+  "remember" true,
+  "followedBy": false,
+  "notFollowedBy": false,
+  "options" [[token]],
 }
 ```
 
@@ -68,8 +68,8 @@ Like root, it can contain an `options` key instead of `stack` if there is a pipe
 
 ```js
 {
-    "type": ret.types.POSITION
-  , "value": "^"
+  "type": ret.types.POSITION,
+  "value": "^",
 }
 ```
 
@@ -79,9 +79,9 @@ Contains a key `set` specifying what tokens are allowed and a key `not` specifyi
 
 ```js
 {
-    "type": ret.types.SET
-  , "set": [token]
-  , "not": false
+  "type": ret.types.SET,
+  "set": [token],
+  "not": false,
 }
 ```
 
@@ -91,9 +91,9 @@ Used in set tokens to specify a character range. `from` and `to` are character c
 
 ```js
 {
-    "type": ret.types.RANGE
-  , "from": 97
-  , "to": 122
+  "type": ret.types.RANGE,
+  "from": 97,
+  "to": 122,
 }
 ```
 
@@ -101,9 +101,9 @@ Used in set tokens to specify a character range. `from` and `to` are character c
 
 ```js
 {
-    "type": ret.types.REPETITION
-  , "min": 0
-  , "max": Infinity
+  "type": ret.types.REPETITION,
+  "min": 0,
+  "max": Infinity,
 }
 ```
 
@@ -113,8 +113,8 @@ References a group token. `value` is 1-9.
 
 ```js
 {
-    "type": ret.types.REFERENCE
-  , "value": 1
+  "type": ret.types.REFERENCE,
+  "value": 1,
 }
 ```
 
@@ -124,8 +124,8 @@ Represents a single character token. `value` is the character code. This might s
 
 ```js
 {
-    "type": ret.types.CHAR
-  , "value": 123
+  "type": ret.types.CHAR,
+  "value": 123,
 }
 ```
 

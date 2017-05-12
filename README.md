@@ -37,12 +37,11 @@ var tokens = ret(/foo|bar/.source);
 ### ROOT
 
 Only used in the root of the regexp. This is needed due to the posibility of the root containing a pipe `|` character. In that case, the token will have an `options` key that will be an array of arrays of tokens. If not, it will contain a `stack` key that is an array of tokens.
-[optional]
 
 ```js
 {
   "type": ret.types.ROOT,
-  "stack": [token],
+  "stack": [token1, token2...],
 }
 ```
 
@@ -58,7 +57,11 @@ Like root, it can contain an `options` key instead of `stack` if there is a pipe
   "remember" true,
   "followedBy": false,
   "notFollowedBy": false,
-  "options" [[token]],
+  "options" [
+    [token1, token2...],
+    [othertoken1, othertoken2...]
+    ...
+  ],
 }
 ```
 
@@ -75,12 +78,12 @@ Like root, it can contain an `options` key instead of `stack` if there is a pipe
 
 ### SET
 
-Contains a key `set` specifying what tokens are allowed and a key `not` specifying if the set should be negated.
+Contains a key `set` specifying what tokens are allowed and a key `not` specifying if the set should be negated. A set can contain other sets, ranges, and characters.
 
 ```js
 {
   "type": ret.types.SET,
-  "set": [token],
+  "set": [token1, token2...],
   "not": false,
 }
 ```
@@ -104,6 +107,7 @@ Used in set tokens to specify a character range. `from` and `to` are character c
   "type": ret.types.REPETITION,
   "min": 0,
   "max": Infinity,
+  "value": token,
 }
 ```
 

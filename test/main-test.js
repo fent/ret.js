@@ -1,8 +1,8 @@
-var vows   = require('vows');
-var assert = require('assert');
-var sets   = require('../lib/sets');
-var ret    = require('..');
-var types  = ret.types;
+const vows   = require('vows');
+const assert = require('assert');
+const sets   = require('../lib/sets');
+const ret    = require('..');
+const types  = ret.types;
 
 
 function char(c) {
@@ -18,7 +18,7 @@ vows.describe('Regexp Tokenizer')
     'No special characters': {
       topic: ret('walnuts'),
 
-      'List of char tokens': function(t) {
+      'List of char tokens': (t) => {
         assert.deepEqual(t, {
           type: types.ROOT,
           stack: charStr('walnuts'),
@@ -31,7 +31,7 @@ vows.describe('Regexp Tokenizer')
       '^ and $ in': {
         'one liner': {
           topic: ret('^yes$'),
-          'Positionals at beginning and end': function(t) {
+          'Positionals at beginning and end': (t) => {
             assert.deepEqual(t, {
               type: types.ROOT,
               stack: [
@@ -48,7 +48,7 @@ vows.describe('Regexp Tokenizer')
 
       '\\b and \\B': {
         topic: ret('\\bbeginning\\B'),
-        'Word boundary at beginning': function(t) {
+        'Word boundary at beginning': (t) => {
           assert.deepEqual(t, {
             type: types.ROOT,
             stack: [
@@ -73,37 +73,37 @@ vows.describe('Regexp Tokenizer')
     'Predefined sets': {
       topic: ret('\\w\\W\\d\\D\\s\\S.'),
 
-      'Words set': function(t) {
+      'Words set': (t) => {
         assert.isArray(t.stack);
         assert.deepEqual(t.stack[0], sets.words());
       },
 
-      'Non-Words set': function(t) {
+      'Non-Words set': (t) => {
         assert.isArray(t.stack);
         assert.deepEqual(t.stack[1], sets.notWords());
       },
 
-      'Integer set': function(t) {
+      'Integer set': (t) => {
         assert.isArray(t.stack);
         assert.deepEqual(t.stack[2], sets.ints());
       },
 
-      'Non-Integer set': function(t) {
+      'Non-Integer set': (t) => {
         assert.isArray(t.stack);
         assert.deepEqual(t.stack[3], sets.notInts());
       },
 
-      'Whitespace set': function(t) {
+      'Whitespace set': (t) => {
         assert.isArray(t.stack);
         assert.deepEqual(t.stack[4], sets.whitespace());
       },
 
-      'Non-Whitespace set': function(t) {
+      'Non-Whitespace set': (t) => {
         assert.isArray(t.stack);
         assert.deepEqual(t.stack[5], sets.notWhitespace());
       },
 
-      'Any character set': function(t) {
+      'Any character set': (t) => {
         assert.isArray(t.stack);
         assert.deepEqual(t.stack[6], sets.anyChar());
       },
@@ -113,7 +113,7 @@ vows.describe('Regexp Tokenizer')
     'Custom sets': {
       'topic': ret('[$!a-z123] thing [^0-9]'),
 
-      'Class contains all characters and range': function(t) {
+      'Class contains all characters and range': (t) => {
         assert.deepEqual(t, {
           type: types.ROOT,
           stack: [
@@ -155,7 +155,7 @@ vows.describe('Regexp Tokenizer')
 
     'Two sets in a row with dash in between': {
       'topic': ret('[01]-[ab]'),
-      'Contains both classes and no range': function(t) {
+      'Contains both classes and no range': (t) => {
         assert.deepEqual(t, {
           type: types.ROOT,
           stack: [
@@ -177,7 +177,7 @@ vows.describe('Regexp Tokenizer')
     '| (Pipe)': {
       topic: ret('foo|bar|za'),
 
-      'Returns root object with options': function(t) {
+      'Returns root object with options': (t) => {
         assert.deepEqual(t, {
           type: types.ROOT,
           options: [
@@ -194,7 +194,7 @@ vows.describe('Regexp Tokenizer')
       'with no special characters': {
         topic: ret('hey (there)'),
 
-        'Token list contains group token': function(t) {
+        'Token list contains group token': (t) => {
           assert.deepEqual(t, {
             type: types.ROOT,
             stack: [
@@ -214,7 +214,7 @@ vows.describe('Regexp Tokenizer')
       'that is not remembered': {
         topic: ret('(?:loner)'),
 
-        'Remember is false on the group object': function(t) {
+        'Remember is false on the group object': (t) => {
           assert.deepEqual(t, {
             type: types.ROOT,
             stack: [{
@@ -229,7 +229,7 @@ vows.describe('Regexp Tokenizer')
       'matched previous clause if not followed by this': {
         topic: ret('what(?!ever)'),
 
-        'Returns a group': function(t) {
+        'Returns a group': (t) => {
           assert.deepEqual(t, {
             type: types.ROOT,
             stack: [
@@ -250,7 +250,7 @@ vows.describe('Regexp Tokenizer')
       'matched next clause': {
         topic: ret('hello(?= there)'),
 
-        'Returns a group': function(t) {
+        'Returns a group': (t) => {
           assert.deepEqual(t, {
             type: types.ROOT,
             stack: [
@@ -272,7 +272,7 @@ vows.describe('Regexp Tokenizer')
       'with subgroup': {
         topic: ret('a(b(c|(?:d))fg) @_@'),
 
-        'Groups within groups': function(t) {
+        'Groups within groups': (t) => {
           assert.deepEqual(t, {
             type: types.ROOT,
             stack: [
@@ -308,7 +308,7 @@ vows.describe('Regexp Tokenizer')
       'exact amount': {
         topic: ret('(?:pika){2}'),
 
-        'Min and max are the same': function(t) {
+        'Min and max are the same': (t) => {
           assert.deepEqual(t, {
             type: types.ROOT,
             stack: [
@@ -327,7 +327,7 @@ vows.describe('Regexp Tokenizer')
       'minimum amount only': {
         topic: ret('NO{6,}'),
 
-        'To infinity': function(t) {
+        'To infinity': (t) => {
           assert.deepEqual(t, {
             type: types.ROOT,
             stack: [
@@ -342,7 +342,7 @@ vows.describe('Regexp Tokenizer')
       'both minimum and maximum': {
         topic: ret('pika\\.\\.\\. chu{3,20}!{1,2}'),
 
-        'Min and max differ and min < max': function(t) {
+        'Min and max differ and min < max': (t) => {
           assert.deepEqual(t, {
             type: types.ROOT,
             stack: charStr('pika... ch').concat([
@@ -356,7 +356,7 @@ vows.describe('Regexp Tokenizer')
       'Brackets around a non-repetitional': {
         topic: ret('a{mustache}'),
 
-        'Returns a non-repetitional': function(t) {
+        'Returns a non-repetitional': (t) => {
           assert.deepEqual(t, {
             type: types.ROOT,
             stack: charStr('a{mustache}'),
@@ -370,16 +370,16 @@ vows.describe('Regexp Tokenizer')
       '? (Optional)': {
         topic: ret('hey(?: you)?'),
 
-        'Get back correct min and max': function(t) {
+        'Get back correct min and max': (t) => {
           assert.deepEqual(t, {
-              type: types.ROOT,
-              stack: charStr('hey').concat([
-                { type: types.REPETITION, min: 0, max: 1,
-                  value: {
-                    type: types.GROUP, remember: false,
-                    stack: charStr(' you'),
-                  }
+            type: types.ROOT,
+            stack: charStr('hey').concat([
+              { type: types.REPETITION, min: 0, max: 1,
+                value: {
+                  type: types.GROUP, remember: false,
+                  stack: charStr(' you'),
                 }
+              }
             ]),
           });
         }
@@ -388,7 +388,7 @@ vows.describe('Regexp Tokenizer')
       '+ (At least one)': {
         topic: ret('(no )+'),
 
-        'Correct min and max': function(t) {
+        'Correct min and max': (t) => {
           assert.deepEqual(t, {
             type: types.ROOT,
             stack: [{
@@ -405,13 +405,13 @@ vows.describe('Regexp Tokenizer')
       '* (Any amount)': {
         topic: ret('XF*D'),
 
-        '0 to Infinity': function(t) {
+        '0 to Infinity': (t) => {
           assert.deepEqual(t, {
             type: types.ROOT,
             stack: [
               char('X'),
               { type: types.REPETITION, min: 0, max: Infinity,
-                  value: char('F')},
+                value: char('F')},
               char('D'),
             ],
           });
@@ -423,7 +423,7 @@ vows.describe('Regexp Tokenizer')
     'Reference': {
       topic: ret('<(\\w+)>\\w*<\\1>'),
 
-      'Reference a group': function(t) {
+      'Reference a group': (t) => {
         assert.deepEqual(t, {
           type: types.ROOT,
           stack: [

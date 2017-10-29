@@ -1,6 +1,6 @@
-var vows   = require('vows');
-var assert = require('assert');
-var ret    = require('..');
+const vows   = require('vows');
+const assert = require('assert');
+const ret    = require('..');
 
 
 /**
@@ -22,7 +22,7 @@ function topicMacro(regexp) {
  */
 function errMacro(regexp, message) {
   message = 'Invalid regular expression: /' + regexp + '/: ' + message;
-  return function(err) {
+  return (err) => {
     assert.isObject(err);
     assert.include(err, 'message');
     assert.equal(err.message, message);

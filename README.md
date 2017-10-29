@@ -9,7 +9,7 @@ Tokenizes strings that represent a regular expressions.
 # Usage
 
 ```js
-var ret = require('ret');
+const ret = require('ret');
 
 var tokens = ret(/foo|bar/.source);
 ```

@@ -177,7 +177,3 @@ Tests are written with [vows](http://vowsjs.org/)
 ```bash
 npm test
 ```
-
-# License
-
-MIT

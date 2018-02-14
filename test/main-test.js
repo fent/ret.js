@@ -150,6 +150,27 @@ vows.describe('Regexp Tokenizer')
             }
           ],
         });
+      },
+      'Whitespace characters': {
+        'topic': ret('[\t\r\n ]'),
+
+        'Class contains some whitespace characters (not included in .)': (t) => {
+          assert.deepEqual(t, {
+            type: types.ROOT,
+            stack: [
+              {
+                type: types.SET,
+                set: [
+                  char('\t'),
+                  char('\r'),
+                  char('\n'),
+                  char(' ')
+                ],
+                not: false,
+              },
+            ],
+          });
+        }
       }
     },
 

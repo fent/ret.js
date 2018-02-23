@@ -150,6 +150,32 @@ vows.describe('Regexp Tokenizer')
             }
           ],
         });
+      },
+      'Whitespace characters': {
+        'topic': ret('[\t\r\n\u2028\u2029 ]'),
+
+        'Class contains some whitespace characters (not included in .)': (t) => {
+          const LINE_SEPARATOR = String.fromCharCode(8232) // \u2028
+          const PAGE_SEPARATOR = String.fromCharCode(8233) // \u2029
+
+          assert.deepEqual(t, {
+            type: types.ROOT,
+            stack: [
+              {
+                type: types.SET,
+                set: [
+                  char('\t'),
+                  char('\r'),
+                  char('\n'),
+                  char(LINE_SEPARATOR),
+                  char(PAGE_SEPARATOR),
+                  char(' ')
+                ],
+                not: false,
+              },
+            ],
+          });
+        }
       }
     },
 

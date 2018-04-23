@@ -164,6 +164,346 @@ ret.js will throw errors if given a string with an invalid regular expression. A
 * Unterminated group. A group was not closed. Example: `/(1(23)4/`
 * Unterminated character class. A custom character set was not closed. Example: `/[abc/`
 
+# Regular Expression Syntax
+
+Regular expressions follow the [JavaScript syntax](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp).
+
+The following latest JavaScript additions are not supported yet:
+* `\p` and `\P`: [Unicode property escapes](https://github.com/tc39/proposal-regexp-unicode-property-escapes)
+* `(?<group>)` and `\k<group>`: [Named groups](https://github.com/tc39/proposal-regexp-named-groups)
+* `(?<=)` and `(?<!)`: [Negative lookbehind assertions](https://github.com/tc39/proposal-regexp-lookbehind)
+
+# Examples
+
+`/abc/`
+
+```js
+{
+  "type": ret.types.ROOT,
+  "stack": [
+    { "type": ret.types.CHAR, "value": 97 },
+    { "type": ret.types.CHAR, "value": 98 },
+    { "type": ret.types.CHAR, "value": 99 }
+  ]
+}
+```
+
+`/[abc]/`
+
+```js
+{
+  "type": ret.types.ROOT,
+  "stack": [{
+    "type": ret.types.SET,
+    "set": [
+      { "type": ret.types.CHAR, "value": 97 },
+      { "type": ret.types.CHAR, "value": 98 },
+      { "type": ret.types.CHAR, "value": 99 }
+    ],
+    "not": false
+  }]
+}
+```
+
+`/[^abc]/`
+
+```js
+{
+  "type": ret.types.ROOT,
+  "stack": [{
+    "type": ret.types.SET,
+    "set": [
+      { "type": ret.types.CHAR, "value": 97 },
+      { "type": ret.types.CHAR, "value": 98 },
+      { "type": ret.types.CHAR, "value": 99 }
+    ],
+    "not": true
+  }]
+}
+```
+
+`/[a-z]/`
+
+```js
+{
+  "type": ret.types.ROOT,
+  "stack": [{
+    "type": ret.types.SET,
+    "set": [
+      { "type": ret.types.RANGE, "from": 97, "to": 122 }
+    ],
+    "not": false
+  }]
+}
+```
+
+`/\w/`
+
+```js
+// Similar logic for `\W`, `\d`, `\D`, `\s` and `\S`    
+{
+  "type": ret.types.ROOT,
+  "stack": [{
+    "type": ret.types.SET,
+    "set": [{
+      "type": ret.types.SET,
+      "set": [ 
+        { "type": ret.types.CHAR, "value": 95 },
+        { "type": ret.types.RANGE, "from": 97, "to": 122 },
+        { "type": ret.types.RANGE, "from": 65, "to": 90 },
+        { "type": ret.types.RANGE, "from": 48, "to": 57 }
+      ],
+      "not": false
+    }],
+    "not": false
+  }]
+}
+```
+
+`/./`
+
+```js
+// any character but CR, LF, U+2028 or U+2029
+{
+  "type": ret.types.ROOT,
+  "stack": [{
+    "type": ret.types.SET,
+    "set": [ 
+      { "type": ret.types.CHAR, "value": 10 },
+      { "type": ret.types.CHAR, "value": 13 },
+      { "type": ret.types.CHAR, "value": 8232 },
+      { "type": ret.types.CHAR, "value": 8233 }
+    ],
+    "not": true
+  }]
+}
+```
+
+`/a*/`
+
+```js
+{
+  "type": ret.types.ROOT,
+  "stack": [{ 
+    "type": ret.types.REPETITION, 
+    "min": 0,
+    "max": Infinity,
+    "value": { "type": ret.types.CHAR, "value": 97 }
+  }]
+}
+```
+
+`/a+/`
+
+```js
+{
+  "type": ret.types.ROOT,
+  "stack": [{ 
+    "type": ret.types.REPETITION, 
+    "min": 1,
+    "max": Infinity,
+    "value": { "type": ret.types.CHAR, "value": 97 },
+  }]
+}
+```
+
+`/a?/`
+
+```js
+{
+  "type": ret.types.ROOT,
+  "stack": [{ 
+    "type": ret.types.REPETITION, 
+    "min": 0,
+    "max": 1,
+    "value": { "type": ret.types.CHAR, "value": 97 }
+  }]
+}
+```
+
+`/a{3}/`
+
+```js
+{
+  "type": ret.types.ROOT,
+  "stack": [{ 
+    "type": ret.types.REPETITION, 
+    "min": 3,
+    "max": 3,
+    "value": { "type": ret.types.CHAR, "value": 97 }
+  }]
+}
+```
+
+`/a{3,5}/`
+
+```js
+{
+  "type": ret.types.ROOT,
+  "stack": [{ 
+    "type": ret.types.REPETITION, 
+    "min": 3,
+    "max": 5,
+    "value": { "type": ret.types.CHAR, "value": 97 }
+  }]
+}
+```
+
+`/a{3,}/`
+
+```js
+{
+  "type": ret.types.ROOT,
+  "stack": [{ 
+    "type": ret.types.REPETITION, 
+    "min": 3,
+    "max": Infinity,
+    "value": { "type": ret.types.CHAR, "value": 97 }
+  }]
+}
+```
+
+`/(a)/`
+
+```js
+{
+  "type": ret.types.ROOT,
+  "stack": [{ 
+    "type": ret.types.GROUP, 
+    "stack": { "type": ret.types.CHAR, "value": 97 },
+    "remember": true
+  }]
+}
+```
+
+`/(?:a)/`
+
+```js
+{
+  "type": ret.types.ROOT,
+  "stack": [{ 
+    "type": ret.types.GROUP, 
+    "stack": { "type": ret.types.CHAR, "value": 97 },
+    "remember": false
+  }]
+}
+```
+
+`/(?=a)/`
+
+```js
+{
+  "type": ret.types.ROOT,
+  "stack": [{ 
+    "type": ret.types.GROUP, 
+    "stack": { "type": ret.types.CHAR, "value": 97 },
+    "remember": false,
+    "followedBy": true
+  }]
+}
+```
+
+`/(?!a)/`
+
+```js
+{
+  "type": ret.types.ROOT,
+  "stack": [{ 
+    "type": ret.types.GROUP, 
+    "stack": { "type": ret.types.CHAR, "value": 97 },
+    "remember": false,
+    "notFollowedBy": true
+  }]
+}
+```
+
+`/a|b/`
+
+```js
+{
+  "type": ret.types.ROOT,
+  "options": [
+    [{ "type": ret.types.CHAR, "value": 97 }], 
+    [{ "type": ret.types.CHAR, "value": 98 }] 
+  ]
+}
+```
+
+`/(a|b)/`
+
+```js
+{
+  "type": ret.types.ROOT,
+  "stack": [
+    "type": ret.types.GROUP,
+    "remember": true,
+    "options": [
+      [{ "type": ret.types.CHAR, "value": 97 }], 
+      [{ "type": ret.types.CHAR, "value": 98 }] 
+    ]
+  ]
+}
+```
+
+`/^/`
+
+```js
+{
+  "type": ret.types.ROOT,
+  "stack": [{
+    "type": ret.types.POSITION,
+    "value": "^"
+  }]
+}
+```
+
+`/$/`
+
+```js
+{
+  "type": ret.types.ROOT,
+  "stack": [{
+    "type": ret.types.POSITION,
+    "value": "$"
+  }]
+}
+```
+
+`/\b/`
+
+```js
+{
+  "type": ret.types.ROOT,
+  "stack": [{
+    "type": ret.types.POSITION,
+    "value": "b"
+  }]
+}
+```
+
+`/\B/`
+
+```js
+{
+  "type": ret.types.ROOT,
+  "stack": [{
+    "type": ret.types.POSITION,
+    "value": "B"
+  }]
+}
+```
+
+`/\1/`
+
+```js
+{
+  "type": ret.types.ROOT,
+  "stack": [{
+    "type": ret.types.REFERENCE,
+    "value": 1
+  }]
+}
+```
 
 # Install
 

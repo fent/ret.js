@@ -246,14 +246,10 @@ The following latest JavaScript additions are not supported yet:
   "stack": [{
     "type": ret.types.SET,
     "set": [{
-      "type": ret.types.SET,
-      "set": [ 
-        { "type": ret.types.CHAR, "value": 95 },
-        { "type": ret.types.RANGE, "from": 97, "to": 122 },
-        { "type": ret.types.RANGE, "from": 65, "to": 90 },
-        { "type": ret.types.RANGE, "from": 48, "to": 57 }
-      ],
-      "not": false
+      { "type": ret.types.CHAR, "value": 95 },
+      { "type": ret.types.RANGE, "from": 97, "to": 122 },
+      { "type": ret.types.RANGE, "from": 65, "to": 90 },
+      { "type": ret.types.RANGE, "from": 48, "to": 57 }
     }],
     "not": false
   }]

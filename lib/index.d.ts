@@ -9,7 +9,7 @@ declare namespace ret {
     RANGE = 4,
     REPETITION = 5,
     REFERENCE = 6,
-    CHAR = 7,
+    CHAR = 7
   }
 
   type Token = Group | Position | Set | Range | Repetition | Reference | Char;
@@ -24,15 +24,15 @@ declare namespace ret {
   type Group = {
     type: types.GROUP;
     remember: boolean;
-    followedBy: boolean;
-    notFollowedBy: boolean;
     stack?: Token[];
     options?: Token[][];
+    followedBy?: boolean;
+    notFollowedBy?: boolean;
   };
 
   type Position = {
     type: types.POSITION;
-    value: '^' | '$' | 'B' | 'b';
+    value: "^" | "$" | "B" | "b";
   };
 
   type Set = {

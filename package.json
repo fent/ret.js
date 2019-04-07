@@ -15,6 +15,7 @@
   },
   "author": "fent (https://github.com/fent)",
   "main": "./lib/index.js",
+  "types": "./typings/index.d.ts",
   "files": [
     "lib"
   ],

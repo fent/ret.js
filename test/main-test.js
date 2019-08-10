@@ -5,13 +5,13 @@ const ret    = require('..');
 const types  = ret.types;
 
 
-function char(c) {
+const char = (c) => {
   return { type: types.CHAR, value: c.charCodeAt(0) };
-}
+};
 
-function charStr(str) {
+const charStr = (str) => {
   return str.split('').map(char);
-}
+};
 
 vows.describe('Regexp Tokenizer')
   .addBatch({

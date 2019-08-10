@@ -11,7 +11,7 @@ Tokenizes strings that represent a regular expressions.
 ```js
 const ret = require('ret');
 
-var tokens = ret(/foo|bar/.source);
+let tokens = ret(/foo|bar/.source);
 ```
 
 `tokens` will contain the following object

@@ -4,43 +4,43 @@ const ret    = require('..');
 
 
 /**
- * @param {String} regexp
+ * @param {string} regexp
  */
-function topicMacro(regexp) {
+const topicMacro = (regexp) => {
   try {
     ret(regexp);
   } catch (err) {
     return err;
   }
-}
+};
 
 
 /**
- * @param {String} regexp
- * @param {String} message
+ * @param {string} regexp
+ * @param {string} message
  * @return {Function(Error)}
  */
-function errMacro(regexp, message) {
+const errMacro = (regexp, message) => {
   message = 'Invalid regular expression: /' + regexp + '/: ' + message;
   return (err) => {
     assert.isObject(err);
     assert.include(err, 'message');
     assert.equal(err.message, message);
   };
-}
+};
 
 
 /**
- * @param {String} regexp
- * @param {String} name
- * @param {String} message
+ * @param {string} regexp
+ * @param {string} name
+ * @param {string} message
  * @return {Object}
  */
-function macro(regexp, name, message) {
-  var obj = { topic: topicMacro(regexp) };
+const macro = (regexp, name, message) => {
+  let obj = { topic: topicMacro(regexp) };
   obj[name] = errMacro(regexp, message);
   return obj;
-}
+};
 
 
 vows.describe('Regexp Tokenizer Errors')

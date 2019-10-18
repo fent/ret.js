@@ -21,13 +21,13 @@
     "typings"
   ],
   "scripts": {
-    "test": "istanbul cover vows -- --spec test/*-test.js"
+    "test": "nyc --extension --reporter=lcov --reporter=text-summary vows -- --spec test/*-test.js"
   },
   "directories": {
     "lib": "./lib"
   },
   "devDependencies": {
-    "istanbul": "^0.4.5",
+    "nyc": "^14.1.1",
     "vows": "^0.8.2"
   },
   "engines": {

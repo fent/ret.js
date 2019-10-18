@@ -2,7 +2,6 @@
 
 Tokenizes strings that represent a regular expressions.
 
-[![Build Status](https://secure.travis-ci.org/fent/ret.js.svg)](http://travis-ci.org/fent/ret.js)
 [![Dependency Status](https://david-dm.org/fent/ret.js.svg)](https://david-dm.org/fent/ret.js)
 [![codecov](https://codecov.io/gh/fent/ret.js/branch/master/graph/badge.svg)](https://codecov.io/gh/fent/ret.js)
 

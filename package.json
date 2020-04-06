@@ -27,7 +27,7 @@
     "lib": "./lib"
   },
   "devDependencies": {
-    "nyc": "^14.1.1",
+    "nyc": "^15.0.1",
     "vows": "^0.8.2"
   },
   "engines": {

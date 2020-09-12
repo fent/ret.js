@@ -1,7 +1,7 @@
 import { types, Set, Range, Char } from './types'
 
 type SetsFunc = () => (Range | Char)[]
-type SetFunc = () => Set
+export type SetFunc = () => Set
 
 const INTS: SetsFunc = () => [{ type: types.RANGE , from: 48, to: 57 }];
 

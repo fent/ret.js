@@ -1,4 +1,15 @@
 import { types, Root, Token, Tokens, Group } from './types'
+import * as sets from './sets'
+
+const simplifications: [sets.SetFunc, string][] = [
+    [sets.words, '\\w'],
+    [sets.notWords, '\\W'],
+    [sets.ints, '\\d'],
+    [sets.notInts, '\\D'],
+    [sets.whitespace, '\\s'],
+    [sets.notWhitespace, '\\S'],
+    [sets.anyChar, '.']
+]
 
 const reduceStack = (stack : Token[]): string => stack.map(partialConstruct).join('')
 
@@ -14,46 +25,57 @@ const createAlternate = (token: Root | Group): string => {
 
 export const reconstruct = (regexpToken : Root): string => partialConstruct(regexpToken)
 
+// export const partialConstruct = (token: Tokens): string => {
+//     let str = partialConstructInner(token); let temp = '';
+//     while (temp != (temp = str)) {
+//         for (const [s, replace] of simplifications) {
+//             str = str.replace(s, replace)
+//             if (str.length > 1000)
+//                 throw new Error('We made a bobo');
+//         }
+//     }
+//     return str
+// }
+
 export const partialConstruct = (token : Tokens): string => {
-  switch (token.type) {
-
-    case types.CHAR:
-      return String.fromCharCode(token.value)
-
-    case types.RANGE:
-      return `${String.fromCharCode(token.from)}-${String.fromCharCode(token.to)}`
-
-    case types.ROOT:
-      return createAlternate(token)
-
-    case types.GROUP:
-      // Check token.remember
-      return `(${token.remember && '?'}${token.lookBehind && '<'}${
-        token.followedBy && '='
-        || token.notFollowedBy && '!'
-        || ':'
-        }${createAlternate})`
-
-    case types.POSITION, types.REFERENCE:
-      return `\\${token.value}`
-
-    case types.REPETITION: 
-      const {min, max} = token
-      let endWith;
-      switch(`${min}, ${max}`) {
-        case '0, 1': endWith = '?';
-        case '1, Infinity': endWith = '+';
-        case '0, Infinity': endWith = '*';
+    switch (token.type) {
+        case types.ROOT:
+            return createAlternate(token)
+        case types.CHAR:
+            return String.fromCharCode(token.value)
+        case types.POSITION:
+            return `${token.value}`
+        case types.REFERENCE:
+            return `\\${token.value}`
+        case types.SET:
+            for (const [set, simplification] of simplifications) {
+                if (JSON.stringify(set()) === JSON.stringify(token))
+                    return simplification
+            }
+            return `[${token.not ? '^' : ''}${reduceStack(token.set)}]`
+        case types.RANGE:
+            return `${String.fromCharCode(token.from)}-${String.fromCharCode(token.to)}`
+        case types.GROUP:
+            // Check token.remember
+             return `(${!token.remember ? '?' : ''}${token.lookBehind ? '<' : ''}${
+                  token.followedBy ? '=' :
+                  token.notFollowedBy ? '!' :
+                  (token.remember ? '' : ':')
+                  }${createAlternate(token)})`
+        case types.REPETITION: 
+            const {min, max} = token
+            let endWith;
+            if (min === 0 && max === 1)
+                endWith = '?';
+            else if (min === 1 && max === Infinity)
+                endWith = '+';
+            else if (min === 0 && max === Infinity)
+                endWith = '\*';
+            else
+                endWith = max === Infinity ? `{${min},}`
+                : `{${min}${min === max ? `` : `,${max}`}}`
+            return `${partialConstruct(token.value)}${endWith}`
         default:
-          endWith = max === Infinity && `{${min}}(${partialConstruct(token.value)})*`
-          || `{${token.min === token.max ? `,${token.max}` : ''}}`
-      }
-      return `(${partialConstruct(token.value)})${endWith}`
-
-    case types.SET:
-      return `[${token.not && '^'}${reduceStack(token.set)}]`
-    
-    default:
-      throw new Error(`Invalid token type: ${token.type}`)
-  }
+            throw new Error(`Invalid token type`)
+    }
 }

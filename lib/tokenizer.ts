@@ -1,16 +1,17 @@
 import * as util from './util'
-import { types } from './types'
+import { Group, types } from './types'
 import * as sets from './sets'
 import * as positions from './positions'
+import { Root } from '../typings';
 
-export const tokenizer = (regexpStr: string) => {
-  let i = 0, l, c;
-  let start = { type: types.ROOT, stack: []};
+export const tokenizer = (regexpStr: string): Root => {
+  let i: number = 0, c: string;
+  let start: Root = { type: types.ROOT, stack: [] };
 
   // Keep track of last clause/group and stack.
-  let lastGroup = start;
+  let lastGroup: Group | Root = start;
   let last = start.stack;
-  let groupStack = [];
+  let groupStack: (Group | Root)[] = [];
 
 
   const repeatErr = (i: number) => {
@@ -19,10 +20,9 @@ export const tokenizer = (regexpStr: string) => {
 
   // Decode a few escaped characters.
   let str = util.strToChars(regexpStr);
-  l = str.length;
 
   // Iterate through each character in string.
-  while (i < l) {
+  while (i < str.length) {
     c = str[i++];
 
     switch (c) {

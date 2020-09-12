@@ -1,8 +1,6 @@
 import * as util from './util'
-import { Group, types } from './types'
+import { Group, types, Root, Token } from './types'
 import * as sets from './sets'
-import * as positions from './positions'
-import { Root } from '../typings';
 
 export const tokenizer = (regexpStr: string): Root => {
   let i: number = 0, c: string;
@@ -10,7 +8,7 @@ export const tokenizer = (regexpStr: string): Root => {
 
   // Keep track of last clause/group and stack.
   let lastGroup: Group | Root = start;
-  let last = start.stack;
+  let last: Token[] = start.stack ?? [];
   let groupStack: (Group | Root)[] = [];
 
 
@@ -28,15 +26,13 @@ export const tokenizer = (regexpStr: string): Root => {
     switch (c) {
       // Handle escaped characters, inclues a few sets.
       case '\\':
-        c = str[i++];
-
-        switch (c) {
+        switch (c = str[i++]) {
           case 'b':
-            last.push(positions.wordBoundary());
+            last.push({ type: types.POSITION, value: 'b'});
             break;
 
           case 'B':
-            last.push(positions.nonWordBoundary());
+            last.push({ type: types.POSITION, value: 'B'});
             break;
 
           case 'w':
@@ -80,11 +76,11 @@ export const tokenizer = (regexpStr: string): Root => {
 
       // Positionals.
       case '^':
-        last.push(positions.begin());
+        last.push({ type: types.POSITION, value: '^'});
         break;
 
       case '$':
-        last.push(positions.end());
+        last.push({ type: types.POSITION, value: '$'});
         break;
 
 
@@ -129,20 +125,18 @@ export const tokenizer = (regexpStr: string): Root => {
           remember: true,
         };
 
-        c = str[i];
-
         // If if this is a special kind of group.
-        if (c === '?') {
+        if ((c = str[i]) === '?') {
           c = str[i + 1];
           i += 2;
 
           // Match if followed by.
           if (c === '=') {
-            group.followedBy = true;
+            (group as Group).followedBy = true;
 
           // Match if not followed by.
           } else if (c === '!') {
-            group.notFollowedBy = true;
+            (group as Group).notFollowedBy = true;
 
           } else if (c !== ':') {
             util.error(regexpStr,
@@ -154,13 +148,13 @@ export const tokenizer = (regexpStr: string): Root => {
         }
 
         // Insert subgroup into current group stack.
-        last.push(group);
+        last.push(group as Group);
 
         // Remember the current group for when the group closes.
         groupStack.push(lastGroup);
 
         // Make this new group the current group.
-        lastGroup = group;
+        lastGroup = group as Group;
         last = group.stack;
         break;
       }
@@ -171,12 +165,16 @@ export const tokenizer = (regexpStr: string): Root => {
         if (groupStack.length === 0) {
           util.error(regexpStr, `Unmatched ) at column ${i - 1}`);
         }
-        lastGroup = groupStack.pop();
+        lastGroup = groupStack.pop() as Group;
 
         // Check if this group has a PIPE.
         // To get back the correct last stack.
-        last = lastGroup.options ?
-          lastGroup.options[lastGroup.options.length - 1] : lastGroup.stack;
+        const lastTemp = lastGroup.options ?
+        lastGroup.options[lastGroup.options.length - 1] : lastGroup.stack;
+      if (lastTemp)
+        last = lastTemp;
+      else
+        util.error(regexpStr, 'Invalid use of pipe');
         break;
 
 
@@ -185,13 +183,18 @@ export const tokenizer = (regexpStr: string): Root => {
         // Create array where options are if this is the first PIPE
         // in this clause.
         if (!lastGroup.options) {
-          lastGroup.options = [lastGroup.stack];
+          if (lastGroup.stack)
+            lastGroup.options = [lastGroup.stack];
+          else 
+            util.error(regexpStr, 'last group does not contain stack');
           delete lastGroup.stack;
         }
-
         // Create a new stack and add to options for rest of clause.
-        let stack = [];
-        lastGroup.options.push(stack);
+        let stack: Token[] = [];
+        if (lastGroup.options)
+          lastGroup.options.push(stack);
+        else
+          util.error(regexpStr, 'last group does not contain options')
         last = stack;
         break;
       }
@@ -216,7 +219,7 @@ export const tokenizer = (regexpStr: string): Root => {
             type: types.REPETITION,
             min,
             max,
-            value: last.pop(),
+            value: last.pop() as Group,
           });
         } else {
           last.push({
@@ -235,7 +238,7 @@ export const tokenizer = (regexpStr: string): Root => {
           type: types.REPETITION,
           min: 0,
           max: 1,
-          value: last.pop(),
+          value: last.pop() as Group,
         });
         break;
 
@@ -247,7 +250,7 @@ export const tokenizer = (regexpStr: string): Root => {
           type: types.REPETITION,
           min: 1,
           max: Infinity,
-          value: last.pop(),
+          value: last.pop() as Group,
         });
         break;
 
@@ -259,7 +262,7 @@ export const tokenizer = (regexpStr: string): Root => {
           type: types.REPETITION,
           min: 0,
           max: Infinity,
-          value: last.pop(),
+          value: last.pop() as Group,
         });
         break;
 

@@ -1,5 +1,4 @@
 import { types } from "./types"
-import { PositionChar } from "./PositionChar"
 
 type Base<T, K> = { type: T } & K
 
@@ -35,7 +34,7 @@ export type Repetition = Base<types.REPETITION, {
   value: Token;
 }>
 
-export type Position  = ValueType<types.POSITION, PositionChar>
+export type Position  = ValueType<types.POSITION, '$' | '^' | 'b' | 'B'>
 export type Reference = ValueType<types.REFERENCE, number>
 export type Char      = ValueType<types.CHAR, number>
 

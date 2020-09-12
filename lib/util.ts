@@ -46,7 +46,7 @@ export const strToChars = (str: string) => {
  * @param {string} regexpStr
  * @return {Array.<Array.<Object>, number>}
  */
-exports.tokenizeClass = (str, regexpStr) => {
+export const tokenizeClass = (str: string, regexpStr: string) => {
   /* jshint maxlen: false */
   let tokens = [];
   const regexp = /\\(?:(w)|(d)|(s)|(W)|(D)|(S))|((?:(?:\\)(.)|([^\]\\]))-(?:\\)?([^\]]))|(\])|(?:\\)?([^])/g;
@@ -90,7 +90,7 @@ exports.tokenizeClass = (str, regexpStr) => {
     }
   }
 
-  exports.error(regexpStr, 'Unterminated character class');
+  error(regexpStr, 'Unterminated character class');
 };
 
 
@@ -100,6 +100,6 @@ exports.tokenizeClass = (str, regexpStr) => {
  * @param {string} regexp
  * @param {string} msg
  */
-exports.error = (regexp, msg) => {
+export const error = (regexp: string, msg: string) => {
   throw new SyntaxError('Invalid regular expression: /' + regexp + '/: ' + msg);
 };

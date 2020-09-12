@@ -1,4 +1,4 @@
-const types = require('./types');
+import { types } from './types'
 
 const INTS = () => [{ type: types.RANGE , from: 48, to: 57 }];
 

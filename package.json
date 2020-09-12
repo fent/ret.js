@@ -21,7 +21,8 @@
     "typings"
   ],
   "scripts": {
-    "test": "nyc --extension --reporter=lcov --reporter=text-summary vows -- --spec test/*-test.js"
+    "build": "tsc",
+    "test": "tsc && nyc --extension --reporter=lcov --reporter=text-summary vows -- --spec test/*-test.js"
   },
   "directories": {
     "lib": "./dist"

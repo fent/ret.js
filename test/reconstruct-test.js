@@ -15,7 +15,6 @@ const inverseTestFactory = (regexp) => {
     },
 
     [`Checking ${regexp} reconstructs using partialConstruct`] : (t) => {
-      console.log(t)
       const reconstructed = partialConstruct(t) // May need to do some sort of sanitisation here
       assert.isString(reconstructed);
       assert.deepStrictEqual(reconstructed, regexp.replace('[^0-9]', '\\D'))

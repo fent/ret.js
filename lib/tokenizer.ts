@@ -67,7 +67,7 @@ export const tokenizer = (regexpStr: string): Root => {
 
             // Escaped character.
             } else {
-              last.push({ type: types.CHAR, value: c.charCodeAt(0) });
+              last.push({ type: types.CHAR, value: c.charCodeAt(0)});
             }
         }
 

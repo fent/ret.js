@@ -25,26 +25,16 @@ const createAlternate = (token: Root | Group): string => {
 
 export const reconstruct = (regexpToken : Root): string => partialConstruct(regexpToken)
 
-// export const partialConstruct = (token: Tokens): string => {
-//     let str = partialConstructInner(token); let temp = '';
-//     while (temp != (temp = str)) {
-//         for (const [s, replace] of simplifications) {
-//             str = str.replace(s, replace)
-//             if (str.length > 1000)
-//                 throw new Error('We made a bobo');
-//         }
-//     }
-//     return str
-// }
-
 export const partialConstruct = (token : Tokens): string => {
     switch (token.type) {
         case types.ROOT:
             return createAlternate(token)
         case types.CHAR:
-            return String.fromCharCode(token.value)
+            const c = String.fromCharCode(token.value)
+            return (/[[\]^.\/|?*+()]/.test(c) ? '\\' : '') + String.fromCharCode(token.value)
         case types.POSITION:
-            return `${token.value}`
+            if (token.value === '^' || token.value === '$')
+                return `${token.value}`
         case types.REFERENCE:
             return `\\${token.value}`
         case types.SET:

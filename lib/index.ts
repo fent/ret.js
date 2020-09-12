@@ -1,8 +1,7 @@
-const util      = require('./util');
-const types     = require('./types');
-const sets      = require('./sets');
-const positions = require('./positions');
-
+import * as util from './util'
+import { types } from './types'
+import * as sets from './sets'
+import * as positions from './positions'
 
 module.exports = (regexpStr) => {
   let i = 0, l, c;

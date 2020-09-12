@@ -1,4 +1,4 @@
-module.exports = {
+export const types = {
   ROOT       : 0,
   GROUP      : 1,
   POSITION   : 2,

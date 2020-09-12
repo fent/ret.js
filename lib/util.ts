@@ -1,6 +1,5 @@
-const types = require('./types');
-const sets  = require('./sets');
-
+import { types } from './types'
+import * as sets from './sets'
 
 const CTRL = '@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^ ?';
 const SLSH = { '0': 0, 't': 9, 'n': 10, 'v': 11, 'f': 12, 'r': 13 };
@@ -12,7 +11,7 @@ const SLSH = { '0': 0, 't': 9, 'n': 10, 'v': 11, 'f': 12, 'r': 13 };
  * @param {string} str
  * @return {string}
  */
-exports.strToChars = (str) => {
+export const strToChars = (str: string) => {
   /* jshint maxlen: false */
   const charsRegex = /(\[\\b\])|(\\)?\\(?:u([A-F0-9]{4})|x([A-F0-9]{2})|(0?[0-7]{2})|c([@A-Z[\\\]^?])|([0tnvfr]))/g;
   return str.replace(charsRegex, (s, b, lbs, a16, b16, c8, dctrl, eslsh) => {

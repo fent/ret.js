@@ -40,10 +40,10 @@ const NOTANYCHAR = () => {
 };
 
 // Predefined class objects.
-exports.words = () => ({ type: types.SET, set: WORDS(), not: false });
-exports.notWords = () => ({ type: types.SET, set: WORDS(), not: true });
-exports.ints = () => ({ type: types.SET, set: INTS(), not: false });
-exports.notInts = () => ({ type: types.SET, set: INTS(), not: true });
-exports.whitespace = () => ({ type: types.SET, set: WHITESPACE(), not: false });
-exports.notWhitespace = () => ({ type: types.SET, set: WHITESPACE(), not: true });
-exports.anyChar = () => ({ type: types.SET, set: NOTANYCHAR(), not: true });
+export const words = () => ({ type: types.SET, set: WORDS(), not: false });
+export const notWords = () => ({ type: types.SET, set: WORDS(), not: true });
+export const ints = () => ({ type: types.SET, set: INTS(), not: false });
+export const notInts = () => ({ type: types.SET, set: INTS(), not: true });
+export const whitespace = () => ({ type: types.SET, set: WHITESPACE(), not: false });
+export const notWhitespace = () => ({ type: types.SET, set: WHITESPACE(), not: true });
+export const anyChar = () => ({ type: types.SET, set: NOTANYCHAR(), not: true });

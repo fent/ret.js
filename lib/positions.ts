@@ -1,5 +1,6 @@
-const types = require('./types');
-exports.wordBoundary = () => ({ type: types.POSITION, value: 'b' });
-exports.nonWordBoundary = () => ({ type: types.POSITION, value: 'B' });
-exports.begin = () => ({ type: types.POSITION, value: '^' });
-exports.end = () => ({ type: types.POSITION, value: '$' });
+import { types } from './types';
+
+export const wordBoundary = () => ({ type: types.POSITION, value: 'b' });
+export const nonWordBoundary = () => ({ type: types.POSITION, value: 'B' });
+export const begin = () => ({ type: types.POSITION, value: '^' });
+export const end = () => ({ type: types.POSITION, value: '$' });

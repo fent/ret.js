@@ -21,10 +21,10 @@
     "typings"
   ],
   "scripts": {
-    "test": "nyc --extension --reporter=lcov --reporter=text-summary vows -- --spec test/*-test.js"
+    "test": "tsc && nyc --extension --reporter=lcov --reporter=text-summary vows -- --spec test/*-test.js"
   },
   "directories": {
-    "lib": "./lib"
+    "lib": "./dist"
   },
   "devDependencies": {
     "nyc": "^14.1.1",

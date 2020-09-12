@@ -1,6 +1,6 @@
 const vows   = require('vows');
 const assert = require('assert');
-const ret    = require('..');
+const ret    = require('../dist');
 
 
 /**

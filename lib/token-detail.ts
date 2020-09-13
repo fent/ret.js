@@ -1,6 +1,6 @@
 import { regexTokenizer, tokenizer } from './tokenizer'
 import { partialConstruct } from './reconstruct'
-import { types, Tokens, detToken, Root, detGroup, detChar, detRepitition, Repetition, detReference, detPosition, detRange, Range, Group, detRoot, Set, detSet } from './types'
+import { types, Tokens, detToken, Root, detGroup, detChar, detRepitition, Repetition, detReference, detPosition, detRange, Range, Group, detRoot, Set, detSet, Position } from './types'
 import * as R from 'ramda'
 
 export const regexDetailTokenizer = (regex: RegExp) => addDetail(regexTokenizer(regex))
@@ -17,7 +17,6 @@ const extract = ({strValue, strValues}: {strValue?: string, strValues?: string[]
 }
 
 export const addDetail = (token : Tokens & { flags?: string[] }, flags: string[] = (token.flags ??= [])): detToken => {
-    console.log(partialConstruct(token))
     const regexpstr = partialConstruct(token)
     let newToken = { 
         ...token, 
@@ -27,6 +26,19 @@ export const addDetail = (token : Tokens & { flags?: string[] }, flags: string[]
     switch (token.type) {    
         case types.ROOT:
             newToken = addGroupDetails(token, newToken as detRoot, flags);
+            const fixedStack = newToken.stack
+            // Handling of this particular part needs to be better
+            if (!(fixedStack // Checking to make sure the expression is fixed on both sides
+                && fixedStack[0].type === types.POSITION 
+                && fixedStack[0].value === '^'
+                && R.last(fixedStack)?.type === types.POSITION
+                && (R.last(fixedStack) as Position)?.value === '$'
+                )) {
+                (newToken as detRoot).strValues = undefined;
+                (newToken as detRoot).strValue = undefined;
+                (newToken as detRoot).fixed = false;
+                (newToken as detRoot).maxChar = Infinity;
+            }
             return newToken as detToken;
         case types.CHAR:
             (newToken as detChar).minChar = 1;
@@ -62,24 +74,19 @@ export const addDetail = (token : Tokens & { flags?: string[] }, flags: string[]
             (newToken as unknown as detSet).strValue = fix && allOpts?.length === 1 ? allOpts[0] : undefined;
             (newToken as unknown as detSet).strValues = !fix ? allOpts : undefined;
             (newToken as unknown as detSet).set = set;
-            console.log('allOpts', allOpts)
 
             return newToken as detToken;
         case types.RANGE:
             (newToken as detPosition).minChar = 1;
             (newToken as detPosition).maxChar = 1;
             let values: string[] = []
-            console.log((token as Range).from, (token as Range).to)
             for (let i = (token as Range).from; i <= (token as Range).to; i++) {
-                console.log(i)
                 values.push(String.fromCharCode(i))
             }
             if ('i' in flags)
                 values = [ ...values.map(x => x.toUpperCase()), ...values.map(x => x.toLowerCase()) ];
             values = R.uniq(values).sort();
-            console.log(values)
             const fixed = (newToken as detRange).fixed = values.length === 1
-            console.log(fixed, token)
             if (fixed)
                 (newToken as detRange).strValue = values[0];
             else

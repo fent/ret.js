@@ -27,7 +27,7 @@ vows.describe('Regexp Detailer')
     },
 
     '^ret|tor$': {
-      topic: detailed('^ret|tor$'),
+      topic: detailed('^(ret|tor)$'),
 
       'List of char tokens': (t) => {
         assert.deepStrictEqual(t.minChar, 3);
@@ -37,7 +37,7 @@ vows.describe('Regexp Detailer')
     },
 
     'ret|torus': {
-      topic: detailed('^ret|torus$'),
+      topic: detailed('^(ret|torus)$'),
 
       '2 list of char tokens': (t) => {
         assert.deepStrictEqual(t.minChar, 3);
@@ -47,7 +47,7 @@ vows.describe('Regexp Detailer')
     },
 
     '^ret|toru(s{7})$': {
-      topic: detailed('^ret|torus{7}$'),
+      topic: detailed('^(ret|torus{7})$'),
 
       '2 list of char token + repeat': (t) => {
         assert.deepStrictEqual(t.minChar, 3);
@@ -71,8 +71,6 @@ vows.describe('Regexp Detailer')
       topic: detailed('^[0-9]$'),
 
       '2 list of char token + repeat': (t) => {
-        console.log(t.stack[1])
-        console.log(t.stack[1].set[0].strValues)
         assert.deepStrictEqual(t.minChar, 1);
         assert.deepStrictEqual(t.maxChar, 1);
         assert.deepStrictEqual(t.strValues, ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']);
@@ -112,7 +110,18 @@ vows.describe('Regexp Detailer')
         assert.deepStrictEqual(t.flags, ['i']);
         assert.deepStrictEqual(t.strValues, ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']);
       }
-    }
+    },
+
+    '[0-9]$': {
+      topic: regexDetailTokenizer(/[0-9]$/i),
+
+      'Testing unbounded': (t) => {
+        assert.deepStrictEqual(t.minChar, 1);
+        assert.deepStrictEqual(t.maxChar, Infinity);
+        assert.deepStrictEqual(t.fixed, false);
+        assert.deepStrictEqual(t.flags, ['i']);
+      }
+    },
 
     // 'Positionals': {
     //   '^ and $ in': {

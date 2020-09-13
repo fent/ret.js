@@ -1,6 +1,7 @@
 import { types } from './types'
 export * from './tokenizer'
 export * from './reconstruct'
+export * from './token-detail'
 import { tokenizer } from './tokenizer'
 
 export default tokenizer

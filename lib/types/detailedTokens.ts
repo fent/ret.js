@@ -1,4 +1,5 @@
-import { Group, Root, Token } from './tokens'
+import { types } from '..'
+import { Char, Group, Reference, Repetition, Root, Token, Position, Range, Set } from './tokens'
 
 type details = {
   fixed : boolean;
@@ -10,6 +11,22 @@ type details = {
 type det<T> = Omit<T, 'stack' | 'options'> & {
   stack: detToken[];
   options?: detToken[][];  
+}
+
+export type detRoot = Root & details
+export type detGroup = Group & details & { reference: number }
+export type detChar = Char & details
+export type detRepitition = Repetition & details
+export type detReference = Reference & details
+export type detPosition = Position & details
+export type detRange = Range & details
+export type detSet = {
+  type: types.SET,
+  set: detToken[],
+  minChar: number,
+  maxChar: number,
+  fixed: boolean
+  not: boolean
 }
 
 export type detToken = (Exclude<Token, Group> | (Omit<Group, 'stack' | 'options'> & {

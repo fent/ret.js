@@ -66,6 +66,6 @@ export const partialConstruct = (token : Tokens): string => {
                 : `{${min}${min === max ? `` : `,${max}`}}`
             return `${partialConstruct(token.value)}${endWith}`
         default:
-            throw new Error(`Invalid token type`)
+            throw new Error(`Invalid token type ${token}`)
     }
 }

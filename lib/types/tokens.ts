@@ -6,7 +6,8 @@ type ValueType<T, K> = Base<T, { value: K }>
 
 export type Root = Base<types.ROOT, {
   stack: Token[];
-  options?: Token[][];  
+  options?: Token[][];
+  flags?: string[];
 }>
 
 export type Group = Base<types.GROUP, {

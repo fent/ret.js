@@ -2,6 +2,12 @@ import * as util from './util'
 import { Group, types, Root, Token } from './types'
 import * as sets from './sets'
 
+export const regexTokenizer = (regex: RegExp): Root => {
+  let root = tokenizer(regex.source)
+  root.flags = regex.flags.split('')
+  return root
+}
+
 export const tokenizer = (regexpStr: string): Root => {
   let i: number = 0, c: string;
   let start: Root = { type: types.ROOT, stack: [] };

@@ -2,11 +2,14 @@ import { types } from '..'
 import { Char, Group, Reference, Repetition, Root, Token, Position, Range, Set } from './tokens'
 
 type details = {
-  fixed : boolean;
   minChar : number;
   maxChar : number;
-  regexp : string;
-}
+  regexpstr: string;
+  regexp : RegExp;
+  fixed: boolean;
+  strValue?: string;
+  strValues?: string[]
+} 
 
 type det<T> = Omit<T, 'stack' | 'options'> & {
   stack: detToken[];
@@ -25,8 +28,10 @@ export type detSet = {
   set: detToken[],
   minChar: number,
   maxChar: number,
-  fixed: boolean
-  not: boolean
+  fixed: boolean,
+  not: boolean,
+  strValue?: string,
+  strValues?: string[]
 }
 
 export type detToken = (Exclude<Token, Group> | (Omit<Group, 'stack' | 'options'> & {

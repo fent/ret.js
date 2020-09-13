@@ -1,205 +1,112 @@
 import { regexTokenizer, tokenizer } from './tokenizer'
 import { partialConstruct } from './reconstruct'
-import { types, Tokens, detToken, Root, detGroup, detChar, detRepitition, Repetition, detReference, detPosition, detRange, Range, Group, detRoot, Set, detSet, Position } from './types'
+import { types, Tokens, detailedTokens } from './types'
 import * as R from 'ramda'
 
 export const regexDetailTokenizer = (regex: RegExp) => addDetail(regexTokenizer(regex))
 
 export const detailTokenizer = (str: string) => addDetail(tokenizer(str))
 
-const extract = ({strValue, strValues}: {strValue?: string, strValues?: string[]}): string[] | undefined => {
-    if (strValue !== undefined)
-        return [strValue];
-    else if (strValues)
-        return strValues
-    else
-        return undefined
-}
-
-export const addDetail = (token : Tokens & { flags?: string[] }, flags: string[] = (token.flags ??= [])): detToken => {
-    const regexpstr = partialConstruct(token)
-    let newToken = { 
-        ...token, 
-        regexpstr: partialConstruct(token),
-        regexp: new RegExp(regexpstr, flags.join(''))
-    }
-    switch (token.type) {    
-        case types.ROOT:
-            newToken = addGroupDetails(token, newToken as detRoot, flags);
-            const fixedStack = newToken.stack
-            // Handling of this particular part needs to be better
-            if (!(fixedStack // Checking to make sure the expression is fixed on both sides
-                && fixedStack[0].type === types.POSITION 
-                && fixedStack[0].value === '^'
-                && R.last(fixedStack)?.type === types.POSITION
-                && (R.last(fixedStack) as Position)?.value === '$'
-                )) {
-                (newToken as detRoot).strValues = undefined;
-                (newToken as detRoot).strValue = undefined;
-                (newToken as detRoot).fixed = false;
-                (newToken as detRoot).maxChar = Infinity;
-            }
-            return newToken as detToken;
+export function addDetail(token : Tokens & { flags?: string[] }, flags: string[] = (token.flags ??= [])): detailedTokens {
+    const regexString = partialConstruct(token)
+    const regex = new RegExp(regexString, flags.join(''))
+    let min: number = 0, max: number = 0, stringOptions: string[] | undefined = [];
+    let stack: detailedTokens[] | undefined = undefined, 
+    set: detailedTokens[] | undefined = undefined, 
+    options: detailedTokens[][] | undefined = undefined, 
+    value: detailedTokens | undefined = undefined,
+    leftEnd: boolean = false,
+    rightEnd: boolean = false
+    switch(token.type) {
         case types.CHAR:
-            (newToken as detChar).minChar = 1;
-            (newToken as detChar).maxChar = 1;
-            (newToken as detChar).fixed = true;
-            (newToken as detChar).strValue = String.fromCharCode(token.value);
-            return newToken as detToken;
-        case types.POSITION:
-            (newToken as detPosition).minChar = 0;
-            (newToken as detPosition).maxChar = 0;
-            (newToken as detPosition).fixed = true;
-            (newToken as detPosition).strValue = '';
-            return newToken as detToken;
-        case types.REFERENCE:
-            (newToken as detReference).fixed = true; // Fixed in that it is predetermined by what it is referencing
-            return newToken as detToken;
-        case types.SET:
-            const set = ((token as Set).set as Tokens[]).map(x => addDetail(x, flags));
-            const opts: (string[] | undefined)[] = set.map(extract);
-            let allOpts: string[] | undefined = [];
-            if (opts.some(x => x === undefined)) {
-                allOpts = undefined
-            } else {
-                for (const o of opts) {
-                    if (o !== undefined && allOpts !== undefined) {
-                        allOpts = [...o, ...allOpts]
-                    }
-                }
-            }
-            (newToken as unknown as detSet).minChar = Math.min(...set.map(x => x.minChar) as number[]);
-            (newToken as unknown as detSet).maxChar = Math.max(...set.map(x => x.maxChar) as number[]);
-            const fix = (newToken as unknown as detSet).fixed = set.every(x => x.fixed) as boolean || allOpts?.length === 1;
-            (newToken as unknown as detSet).strValue = fix && allOpts?.length === 1 ? allOpts[0] : undefined;
-            (newToken as unknown as detSet).strValues = !fix ? allOpts : undefined;
-            (newToken as unknown as detSet).set = set;
-
-            return newToken as detToken;
+            min = max = 1; stringOptions = [String.fromCharCode(token.value)]; break;
+        case types.POSITION: // Currently does not handle \b and \B
+            leftEnd = token.value === '^';
+            rightEnd = token.value === '$';
+            min = max = 0; stringOptions = ['']; break;
         case types.RANGE:
-            (newToken as detPosition).minChar = 1;
-            (newToken as detPosition).maxChar = 1;
-            let values: string[] = []
-            for (let i = (token as Range).from; i <= (token as Range).to; i++) {
-                values.push(String.fromCharCode(i))
-            }
-            if ('i' in flags)
-                values = [ ...values.map(x => x.toUpperCase()), ...values.map(x => x.toLowerCase()) ];
-            values = R.uniq(values).sort();
-            const fixed = (newToken as detRange).fixed = values.length === 1
-            if (fixed)
-                (newToken as detRange).strValue = values[0];
+            for (let i = token.from; i<= token.to; i++)
+                stringOptions.push(String.fromCharCode(i));
+            stringOptions = [
+                ...stringOptions, 
+                ...(flags.includes('i') ? stringOptions : []).map(x => x.toLowerCase()),
+                ...(flags.includes('i') ? stringOptions : []).map(x => x.toUpperCase()) 
+            ]
+            min = max = 1; break;
+        case types.SET:
+            set = token.set.map(token => addDetail(token, flags))
+            if (token.not !== true)
+                stringOptions = set.reduce((t: string[] | undefined, { stringOptions }) => (stringOptions && t) ? [...t, ...stringOptions] : undefined, []);
             else
-                (newToken as detRange).strValues = values;
-            
-            // Fix
-            return newToken as detToken;
-        case types.GROUP:
-            newToken = addGroupDetails(token as Group, newToken as detGroup, flags)
-            return newToken as detToken;
+                stringOptions = undefined; // This can be improved
+            min = Math.min(...set.map(x => x.minChar)); 
+            max = Math.max(...set.map(x => x.maxChar));
+            break;
         case types.REPETITION:
-            let v = (newToken as detRepitition).value = addDetail((token as Repetition).value, flags);
-            const vls: string[] | undefined = extract(v);
-            let allVls: string[] = [];
-            
-            (newToken as detRepitition).minChar = v.minChar * (token as Repetition).min;
-            (newToken as detRepitition).maxChar = v.maxChar * (token as Repetition).max;
-            
-
-            if ((token as Repetition).max !== Infinity && vls) {
-                for (let i = (token as Repetition).min; i <= (token as Repetition).max; i++)
-                    allVls = allVls.concat(...vls.map(x => x.repeat(i)))
+            value = addDetail(token.value, flags)
+            min = value.minChar * token.min; max = value.maxChar * token.max;
+            if (value.stringOptions && token.max < Infinity) {
+                for (let i = token.min; i <= token.max; i++)
+                    stringOptions = stringOptions?.concat(...value.stringOptions.map(x => x.repeat(i)));
             }
-            
-            const newVls = R.uniq(allVls).sort()
-
-
-            if ((newToken as detRepitition).fixed)
-                (newToken as detRepitition).strValue = newVls[0];
-            else
-                (newToken as detRepitition).strValues = newVls;
-
-            (newToken as detRepitition).fixed = 
-                v.fixed && (token as Repetition).min === (token as Repetition).max
-                || newVls?.length === 1;
-            return newToken as detToken;
+            break;
+        case types.GROUP:
+        case types.ROOT:
+            if (token.stack) {
+                const temp = handleStack(token.stack, flags)
+                min = temp.min; max = temp.max; stack = temp.stack; stringOptions = temp.stringOptions
+                leftEnd = temp.leftEnd
+                rightEnd = temp.rightEnd ?? false
+            } else if (token.options) {
+                const temp = token.options.map(option => handleStack(option, flags))
+                min = Math.min(...temp.map(x => x.min))
+                max = Math.max(...temp.map(x => x.max))
+                options = temp.map(x => x.stack)
+                for (const t of temp) {
+                    stringOptions = (stringOptions && t.stringOptions) ? [...stringOptions, ...t.stringOptions] : undefined
+                }
+                leftEnd = temp.every(x =>  x.leftEnd)
+                rightEnd = temp.every(x =>  x.rightEnd)
+            }
+            break;
         default:
-            throw new Error('No match')
+            throw new Error(`Invalid token ${token}`)
     }
-}
-
-const setOrOptions = (token: Group | Root, newToken: detGroup | detRoot, flags: string[]) => {
-    const options = (token as Group | Root).options?.map(x => addStackDetail(x, flags));
-    const vals: string[] | undefined = options?.reduce((t: string[] | undefined, v) => {
-        const vls: string[] | undefined = extract(v);
-        return t && vls ? [ ...t, ...vls ] : undefined
-    }, []);        
-    (newToken as detGroup | detRoot).options = options?.map(x => x.stack);
-    (newToken as detGroup | detRoot).minChar = Math.min(...options?.map(x => x.minChar) as number[]);
-    (newToken as detGroup | detRoot).maxChar = Math.max(...options?.map(x => x.maxChar) as number[]);
-    const fixed = (newToken as detGroup | detRoot).fixed = 
-        (options?.every(x => x.fixed) as boolean && (options?.length as number) < 2)
-        || vals?.length === 1;
-    (newToken as detGroup | detRoot).strValue = fixed && vals?.length == 1 ? vals[0] : undefined;
-    (newToken as detGroup | detRoot).strValues = vals && vals?.length != 1 ? vals : undefined;
-    return newToken
-}
-
-const addGroupDetails = (token: Group | Root, newToken: detGroup | detRoot, flags: string[]): detGroup | detRoot => {
-    if ((token as Group | Root).options) {
-        newToken = setOrOptions(token, newToken, flags)
-    } else if ((token as Group | Root).stack) {
-        const {stack, minChar, maxChar, fixed, strValue, strValues} = addStackDetail((token as Group | Root).stack as Tokens[], flags);
-        (newToken as detGroup | detRoot).stack = stack;
-        (newToken as detGroup | detRoot).minChar = minChar;
-        (newToken as detGroup | detRoot).maxChar = maxChar;
-        (newToken as detGroup | detRoot).fixed = fixed;
-        (newToken as detGroup | detRoot).strValue = strValue;
-        (newToken as detGroup | detRoot).strValues = strValues;
-    }
-    return newToken
-}
-
-const addStackDetail = (stack: Tokens[], flags: string[]) => {
-    let i = 0
-    const v = stack.map(x => addDetail(x, flags))
-    const minChar = v.reduce((t, x) => t + x.minChar, 0)
-    const maxChar = v.reduce((t, x) => t + x.maxChar, 0)
-    //const fixed = v.every(x => x.fixed)
-    for (const element of v) {
-        if (element.type === types.GROUP && element.remember)
-            (element as detGroup).reference = i++;
-    }
-    for (const element of v) {
-        if (element.type === types.REFERENCE) {
-            const refTo = v.find(x => x.type === types.GROUP && x.reference === element.value)
-            element.minChar = (refTo as detGroup).minChar
-            element.maxChar = (refTo as detGroup).maxChar
-            element.fixed = (refTo as detGroup).fixed
-            element.strValue = (refTo as detGroup).strValue
-            element.strValues = (refTo as detGroup).strValues
-        }
-    }
-    let prod: string[] | undefined = ['']
-    for (const token of v) {
-        const t = extract(token)
-        if (t && prod) {
-            prod = R.uniq(R.xprod(prod, t).map(([l, r]) => l + r)).sort()
-        }
-        else {
-            prod = undefined
-        }
-    }
-    let fixed = prod?.length === 1
-    const strValue = (fixed && prod) ? prod[0] : undefined
-    const strValues = (!fixed && prod) ? prod : undefined
-
+    // Have flags for left and right being 'artificially' bounded
     return {
-        stack: v,
-        minChar,
-        maxChar,
-        fixed,
-        strValue,
-        strValues
+        type: token.type,
+        minChar : min,
+        maxChar : max,
+        regexString,
+        stringOptions: stringOptions ? R.uniq(stringOptions).sort() : undefined,
+        regex,
+        leftEnd,
+        rightEnd,
+        ...(set ? {set} : {}),
+        ...(value ? {value} : {}),
+        ...(stack ? {stack} : {}),
+        ...(options ? {options} : {}),
+        fixed : stringOptions?.length === 1,
+        flags
+    } as detailedTokens
+}
+
+export function handleStack(oldStack: Tokens[], flags: string[]) {
+    const stack = oldStack.map(token => addDetail(token, flags));
+    const min = R.sum(stack.map(x => x.minChar));
+    const max = R.sum(stack.map(x => x.maxChar));
+    let stringOptions: string[] | undefined = ['']; let i = 0;
+    for (const t of stack) {
+        stringOptions = stringOptions && t.stringOptions ? R.xprod(stringOptions, t.stringOptions).map(x => x.join('')) : undefined
+        if (t.type === types.GROUP && t.remember)
+            t.reference = i++;
+    }
+    return {
+        stack, 
+        min, 
+        max, 
+        stringOptions,
+        leftEnd : stack[0].leftEnd,
+        rightEnd : R.last(stack)?.rightEnd ?? false
     }
 }

@@ -3,6 +3,7 @@ export * from './tokenizer'
 export * from './reconstruct'
 export * from './token-detail'
 import { tokenizer } from './tokenizer'
+export * from './types'
 
 export default tokenizer
 export { types }

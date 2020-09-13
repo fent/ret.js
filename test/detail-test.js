@@ -53,7 +53,7 @@ vows.describe('Regexp Detailer')
         assert.deepStrictEqual(t.minChar, 3);
         assert.deepStrictEqual(t.maxChar, 11);
         assert.deepStrictEqual(t.fixed, false);
-        assert.deepStrictEqual(t.strValues, ['ret', 'torusssssss'])
+        assert.deepStrictEqual(t.stringOptions, ['ret', 'torusssssss'])
       }
     },
 
@@ -73,7 +73,7 @@ vows.describe('Regexp Detailer')
       '2 list of char token + repeat': (t) => {
         assert.deepStrictEqual(t.minChar, 1);
         assert.deepStrictEqual(t.maxChar, 1);
-        assert.deepStrictEqual(t.strValues, ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']);
+        assert.deepStrictEqual(t.stringOptions, ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']);
         assert.deepStrictEqual(t.fixed, false);
 
       }
@@ -86,7 +86,7 @@ vows.describe('Regexp Detailer')
         assert.deepStrictEqual(t.minChar, 1);
         assert.deepStrictEqual(t.maxChar, 1);
         assert.deepStrictEqual(t.fixed, true);
-        assert.deepStrictEqual(t.strValue, '0');
+        assert.deepStrictEqual(t.stringOptions, ['0']);
       }
     },
 
@@ -108,7 +108,7 @@ vows.describe('Regexp Detailer')
         assert.deepStrictEqual(t.maxChar, 1);
         assert.deepStrictEqual(t.fixed, false);
         assert.deepStrictEqual(t.flags, ['i']);
-        assert.deepStrictEqual(t.strValues, ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']);
+        assert.deepStrictEqual(t.stringOptions, ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']);
       }
     },
 
@@ -116,8 +116,11 @@ vows.describe('Regexp Detailer')
       topic: regexDetailTokenizer(/[0-9]$/i),
 
       'Testing unbounded': (t) => {
+        console.log(t)
         assert.deepStrictEqual(t.minChar, 1);
-        assert.deepStrictEqual(t.maxChar, Infinity);
+        assert.deepStrictEqual(t.maxChar, 1);
+        assert.deepStrictEqual(t.leftEnd, false);
+        assert.deepStrictEqual(t.rightEnd, true);
         assert.deepStrictEqual(t.fixed, false);
         assert.deepStrictEqual(t.flags, ['i']);
       }

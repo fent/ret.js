@@ -22,7 +22,15 @@ const inverseTestFactory = (regexp) => {
   }
 }
 
-const multiInverseTestFactory = regexps => Object.fromEntries(
+/*! fromentries. MIT License. Feross Aboukhadijeh <https://feross.org/opensource> */
+function fromEntries (iterable) {
+  return [...iterable].reduce((obj, [key, val]) => {
+    obj[key] = val
+    return obj
+  }, {})
+}
+
+const multiInverseTestFactory = regexps => fromEntries(
   regexps.map(regexp => [regexp, inverseTestFactory(regexp)])
   )
 

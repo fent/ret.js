@@ -132,7 +132,7 @@ export const tokenizer = (regexpStr: string): Root => {
         };
 
         // If if this is a special kind of group.
-        if ((c = str[i]) === '?') {
+        if (str[i] === '?') {
           c = str[i + 1];
           i += 2;
 

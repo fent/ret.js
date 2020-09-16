@@ -1,18 +1,7 @@
 const vows   = require('vows');
 const assert = require('assert');
-const sets   = require('../dist/sets');
 const detailed    = require('../dist/token-detail').detailTokenizer;
 const regexDetailTokenizer    = require('../dist/token-detail').regexDetailTokenizer;
-const regTok = require('../dist/index').d
-
-
-const char = (c) => {
-  return { type: types.CHAR, value: c.charCodeAt(0) };
-};
-
-const charStr = (str) => {
-  return str.split('').map(char);
-};
 
 vows.describe('Regexp Detailer')
   .addBatch({
@@ -100,7 +89,7 @@ vows.describe('Regexp Detailer')
       }
     },
 
-    '^[0-9]$': {
+    '^[0-9]$ in regexDetailTokenizer': {
       topic: regexDetailTokenizer(/^[0-9]$/i),
 
       'Basic for full tokenizer': (t) => {

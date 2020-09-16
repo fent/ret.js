@@ -34,7 +34,9 @@ export const partialConstruct = (token : Tokens): string => {
             return (/[[\]^.\/|?*+()]/.test(c) ? '\\' : '') + String.fromCharCode(token.value)
         case types.POSITION:
             if (token.value === '^' || token.value === '$')
-                return `${token.value}`
+                return `${token.value}`;
+            else
+                return `\\${token.value}`;
         case types.REFERENCE:
             return `\\${token.value}`
         case types.SET:
@@ -63,7 +65,7 @@ export const partialConstruct = (token : Tokens): string => {
                 endWith = '\*';
             else
                 endWith = max === Infinity ? `{${min},}`
-                : `{${min}${min === max ? `` : `,${max}`}}`
+                : `{${min}${min === max ? `` : `,${max}`}}`;
             return `${partialConstruct(token.value)}${endWith}`
         default:
             throw new Error(`Invalid token type ${token}`)

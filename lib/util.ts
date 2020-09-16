@@ -4,7 +4,6 @@ import * as sets from './sets'
 type tokenClsArr = (Range | Char | Set)[]
 
 const CTRL = '@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^ ?';
-const SLSH = { '0': 0, 't': 9, 'n': 10, 'v': 11, 'f': 12, 'r': 13 };
 
 /**
  * Finds character representations in str and convert all to

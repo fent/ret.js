@@ -1,4 +1,4 @@
-import { types } from "./types"
+import { types } from './types'
 
 type Base<T, K> = { type: T } & K
 

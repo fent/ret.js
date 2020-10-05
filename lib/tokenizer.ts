@@ -25,9 +25,7 @@ export const tokenizer = (regexpStr: string): Root => {
 
   // Iterate through each character in string.
   while (i < str.length) {
-    c = str[i++];
-
-    switch (c) {
+    switch (c = str[i++]) {
       // Handle escaped characters, inclues a few sets.
       case '\\':
         switch (c = str[i++]) {
@@ -71,20 +69,20 @@ export const tokenizer = (regexpStr: string): Root => {
 
             // Escaped character.
             } else {
-              last.push({ type: types.CHAR, value: c.charCodeAt(0)});
-            }
-        }
+              last.push({ type: types.CHAR, value: c.charCodeAt(0) });
+            };
+        };
 
         break;
 
 
       // Positionals.
       case '^':
-        last.push({ type: types.POSITION, value: '^'});
+        last.push({ type: types.POSITION, value: '^' });
         break;
 
       case '$':
-        last.push({ type: types.POSITION, value: '$'});
+        last.push({ type: types.POSITION, value: '$' });
         break;
 
 
@@ -111,7 +109,7 @@ export const tokenizer = (regexpStr: string): Root => {
         });
 
         break;
-      }
+      };
 
 
       // Class of any character except \n.
@@ -146,10 +144,10 @@ export const tokenizer = (regexpStr: string): Root => {
             util.error(regexpStr,
               `Invalid group, character '${c}'` +
               ` after '?' at column ${i - 1}`);
-          }
+          };
 
           group.remember = false;
-        }
+        };
 
         // Insert subgroup into current group stack.
         last.push(group);
@@ -160,6 +158,7 @@ export const tokenizer = (regexpStr: string): Root => {
         // Make this new group the current group.
         lastGroup = group;
         last = group.stack;
+
         break;
       }
 
@@ -168,7 +167,7 @@ export const tokenizer = (regexpStr: string): Root => {
       case ')':
         if (groupStack.length === 0) {
           util.error(regexpStr, `Unmatched ) at column ${i - 1}`);
-        }
+        };
         lastGroup = groupStack.pop();
 
         // Check if this group has a PIPE.
@@ -187,14 +186,14 @@ export const tokenizer = (regexpStr: string): Root => {
         if (!lastGroup.options) {
           lastGroup.options = [lastGroup.stack];
           delete lastGroup.stack;
-        }
+        };
         // Create a new stack and add to options for rest of clause.
         let stack: Token[] = [];
         lastGroup.options.push(stack);
         last = stack;
-        
+
         break;
-      }
+      };
 
 
       // Repetition.
@@ -223,9 +222,10 @@ export const tokenizer = (regexpStr: string): Root => {
             type: types.CHAR,
             value: 123,
           });
-        }
+        };
+
         break;
-      }
+      };
 
       case '?':
         if (last.length === 0) {
@@ -249,6 +249,7 @@ export const tokenizer = (regexpStr: string): Root => {
           max: Infinity,
           value: last.pop(),
         });
+
         break;
 
       case '*':
@@ -261,6 +262,7 @@ export const tokenizer = (regexpStr: string): Root => {
           max: Infinity,
           value: last.pop(),
         });
+
         break;
 
 
@@ -270,14 +272,14 @@ export const tokenizer = (regexpStr: string): Root => {
           type: types.CHAR,
           value: c.charCodeAt(0),
         });
-    }
+    };
 
-  }
+  };
 
   // Check if any groups have not been closed.
   if (groupStack.length !== 0) {
     util.error(regexpStr, 'Unterminated group');
-  }
+  };
 
   return start;
 };

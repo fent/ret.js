@@ -24,9 +24,6 @@
     "build" : "tsc",
     "prepare" : "tsc"
   },
-  "directories": {
-    "lib": "./lib"
-  },
   "devDependencies": {
     "nyc": "^14.1.1",
     "vows": "^0.8.3"

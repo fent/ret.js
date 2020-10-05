@@ -75,7 +75,7 @@ export const tokenizeClass = (str: string, regexpStr: string): [SetTokens, numbe
       tokens.push(p);
     else 
       return [tokens, regexp.lastIndex];
-  }
+  };
   error(regexpStr, 'Unterminated character class')
   throw new SyntaxError(`Invalid regular expression: ${str}: Unterminated character class`)
 };

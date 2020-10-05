@@ -21,8 +21,8 @@
   ],
   "scripts": {
     "test": "nyc --extension --reporter=lcov --reporter=text-summary vows -- --spec test/*-test.js",
-    "build" : "tsc",
-    "prepare" : "tsc"
+    "build": "tsc",
+    "prepare": "tsc"
   },
   "devDependencies": {
     "nyc": "^14.1.1",

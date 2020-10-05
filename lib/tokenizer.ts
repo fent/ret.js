@@ -1,43 +1,42 @@
-const util      = require('./util');
-const types     = require('./types');
-const sets      = require('./sets');
-const positions = require('./positions');
+import * as util from './util'
+import { Group, types, Root, Token } from './types'
+import * as sets from './sets'
 
-
-module.exports = (regexpStr) => {
-  let i = 0, l, c;
-  let start = { type: types.ROOT, stack: []};
+/**
+ * Tokenizes a regular expression (that is currently a string)
+ * @param regexpStr String of regular expression to be tokenized
+ */
+export const tokenizer = (regexpStr: string): Root => {
+  let i: number = 0, c: string;
+  let start: Root = { type: types.ROOT, stack: [] };
 
   // Keep track of last clause/group and stack.
-  let lastGroup = start;
-  let last = start.stack;
-  let groupStack = [];
+  let lastGroup: Group | Root = start;
+  let last: Token[] = start.stack ?? [];
+  let groupStack: (Group | Root)[] = [];
 
 
-  const repeatErr = (i) => {
+  const repeatErr = (i: number) => {
     util.error(regexpStr, `Nothing to repeat at column ${i - 1}`);
   };
 
   // Decode a few escaped characters.
   let str = util.strToChars(regexpStr);
-  l = str.length;
 
   // Iterate through each character in string.
-  while (i < l) {
+  while (i < str.length) {
     c = str[i++];
 
     switch (c) {
       // Handle escaped characters, inclues a few sets.
       case '\\':
-        c = str[i++];
-
-        switch (c) {
+        switch (c = str[i++]) {
           case 'b':
-            last.push(positions.wordBoundary());
+            last.push({ type: types.POSITION, value: 'b'});
             break;
 
           case 'B':
-            last.push(positions.nonWordBoundary());
+            last.push({ type: types.POSITION, value: 'B'});
             break;
 
           case 'w':
@@ -72,7 +71,7 @@ module.exports = (regexpStr) => {
 
             // Escaped character.
             } else {
-              last.push({ type: types.CHAR, value: c.charCodeAt(0) });
+              last.push({ type: types.CHAR, value: c.charCodeAt(0)});
             }
         }
 
@@ -81,11 +80,11 @@ module.exports = (regexpStr) => {
 
       // Positionals.
       case '^':
-        last.push(positions.begin());
+        last.push({ type: types.POSITION, value: '^'});
         break;
 
       case '$':
-        last.push(positions.end());
+        last.push({ type: types.POSITION, value: '$'});
         break;
 
 
@@ -124,16 +123,14 @@ module.exports = (regexpStr) => {
       // Push group onto stack.
       case '(': {
         // Create group.
-        let group = {
+        let group: Group = {
           type: types.GROUP,
           stack: [],
           remember: true,
         };
 
-        c = str[i];
-
         // If if this is a special kind of group.
-        if (c === '?') {
+        if (str[i] === '?') {
           c = str[i + 1];
           i += 2;
 
@@ -177,7 +174,9 @@ module.exports = (regexpStr) => {
         // Check if this group has a PIPE.
         // To get back the correct last stack.
         last = lastGroup.options ?
-          lastGroup.options[lastGroup.options.length - 1] : lastGroup.stack;
+          lastGroup.options[lastGroup.options.length - 1] : 
+          lastGroup.stack;
+
         break;
 
 
@@ -189,11 +188,11 @@ module.exports = (regexpStr) => {
           lastGroup.options = [lastGroup.stack];
           delete lastGroup.stack;
         }
-
         // Create a new stack and add to options for rest of clause.
-        let stack = [];
+        let stack: Token[] = [];
         lastGroup.options.push(stack);
         last = stack;
+        
         break;
       }
 
@@ -282,5 +281,3 @@ module.exports = (regexpStr) => {
 
   return start;
 };
-
-module.exports.types = types;

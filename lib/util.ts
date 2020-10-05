@@ -1,9 +1,7 @@
-const types = require('./types');
-const sets  = require('./sets');
-
+import { types, SetTokens } from './types'
+import * as sets from './sets'
 
 const CTRL = '@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^ ?';
-const SLSH = { '0': 0, 't': 9, 'n': 10, 'v': 11, 'f': 12, 'r': 13 };
 
 /**
  * Finds character representations in str and convert all to
@@ -12,7 +10,7 @@ const SLSH = { '0': 0, 't': 9, 'n': 10, 'v': 11, 'f': 12, 'r': 13 };
  * @param {string} str
  * @return {string}
  */
-exports.strToChars = (str) => {
+export const strToChars = (str: string) => {
   /* jshint maxlen: false */
   const charsRegex = /(\[\\b\])|(\\)?\\(?:u([A-F0-9]{4})|x([A-F0-9]{2})|(0?[0-7]{2})|c([@A-Z[\\\]^?])|([0tnvfr]))/g;
   return str.replace(charsRegex, (s, b, lbs, a16, b16, c8, dctrl, eslsh) => {
@@ -20,12 +18,20 @@ exports.strToChars = (str) => {
       return s;
     }
 
-    let code = b ? 8 :
+    let code: number | undefined = b ? 8 :
       a16   ? parseInt(a16, 16) :
       b16   ? parseInt(b16, 16) :
       c8    ? parseInt(c8,   8) :
       dctrl ? CTRL.indexOf(dctrl) :
-      SLSH[eslsh];
+      eslsh == '0' ? 0 :
+      eslsh == 't' ? 9 :
+      eslsh == 'n' ? 10 :
+      eslsh == 'v' ? 11 :
+      eslsh == 'f' ? 12 :
+      eslsh == 'r' ? 13 : undefined;
+
+    if (!code)
+      throw new Error(`Code is undefined`)
 
     let c = String.fromCharCode(code);
 
@@ -47,51 +53,31 @@ exports.strToChars = (str) => {
  * @param {string} regexpStr
  * @return {Array.<Array.<Object>, number>}
  */
-exports.tokenizeClass = (str, regexpStr) => {
-  /* jshint maxlen: false */
-  let tokens = [];
+export const tokenizeClass = (str: string, regexpStr: string): [SetTokens, number] => {
+  let tokens: SetTokens = [], rs: string[] | null, c: string;
   const regexp = /\\(?:(w)|(d)|(s)|(W)|(D)|(S))|((?:(?:\\)(.)|([^\]\\]))-(?:\\)?([^\]]))|(\])|(?:\\)?([^])/g;
-  let rs, c;
-
 
   while ((rs = regexp.exec(str)) != null) {
-    if (rs[1]) {
-      tokens.push(sets.words());
-
-    } else if (rs[2]) {
-      tokens.push(sets.ints());
-
-    } else if (rs[3]) {
-      tokens.push(sets.whitespace());
-
-    } else if (rs[4]) {
-      tokens.push(sets.notWords());
-
-    } else if (rs[5]) {
-      tokens.push(sets.notInts());
-
-    } else if (rs[6]) {
-      tokens.push(sets.notWhitespace());
-
-    } else if (rs[7]) {
-      tokens.push({
+    const p = (rs[1] && sets.words())
+      ?? (rs[2] && sets.ints())
+      ?? (rs[3] && sets.whitespace())
+      ?? (rs[4] && sets.notWords())
+      ?? (rs[5] && sets.notInts())
+      ?? (rs[6] && sets.notWhitespace())
+      ?? (rs[7] && {
         type: types.RANGE,
         from: (rs[8] || rs[9]).charCodeAt(0),
-        to: rs[10].charCodeAt(0),
-      });
+        to: rs[10].charCodeAt(0)
+      })
+      ?? ((c = rs[12]) && { type: types.CHAR, value: c.charCodeAt(0) })
 
-    } else if ((c = rs[12])) {
-      tokens.push({
-        type: types.CHAR,
-        value: c.charCodeAt(0),
-      });
-
-    } else {
+    if (p) 
+      tokens.push(p);
+    else 
       return [tokens, regexp.lastIndex];
-    }
   }
-
-  exports.error(regexpStr, 'Unterminated character class');
+  error(regexpStr, 'Unterminated character class')
+  throw new SyntaxError(`Invalid regular expression: ${str}: Unterminated character class`)
 };
 
 
@@ -101,6 +87,6 @@ exports.tokenizeClass = (str, regexpStr) => {
  * @param {string} regexp
  * @param {string} msg
  */
-exports.error = (regexp, msg) => {
+export const error = (regexp: string, msg: string) => {
   throw new SyntaxError('Invalid regular expression: /' + regexp + '/: ' + msg);
 };

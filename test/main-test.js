@@ -1,7 +1,7 @@
 const vows   = require('vows');
 const assert = require('assert');
-const sets   = require('../lib/sets');
-const ret    = require('..');
+const sets   = require('../dist/sets');
+const ret    = require('../dist');
 const types  = ret.types;
 
 

@@ -1,8 +1,8 @@
 const vows   = require('vows');
 const assert = require('assert');
-const util   = require('../lib/util');
-const types  = require('..').types;
-const sets   = require('../lib/sets');
+const util   = require('../dist/util');
+const types  = require('../dist').types;
+const sets   = require('../dist/sets');
 
 
 vows.describe('strToChars')

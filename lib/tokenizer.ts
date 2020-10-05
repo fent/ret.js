@@ -3,6 +3,17 @@ import { Group, types, Root, Token } from './types'
 import * as sets from './sets'
 
 /**
+ * Tokenizes a RegExp object and adds any
+ * flags to the root token
+ * @param regex Javascript RegExp object
+ */
+export const regexTokenizer = (regex: RegExp): Root => {
+  let root = tokenizer(regex.source);
+  root.flags = regex.flags.split('');
+  return root;
+};
+
+/**
  * Tokenizes a regular expression (that is currently a string)
  * @param regexpStr String of regular expression to be tokenized
  */

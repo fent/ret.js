@@ -5,7 +5,7 @@ type Base<T, K> = { type: T } & K
 type ValueType<T, K> = Base<T, { value: K }>
 
 export type Root = Base<types.ROOT, {
-  stack: Token[];
+  stack?: Token[];
   options?: Token[][];
   flags?: string[];
 }>

@@ -20,7 +20,7 @@ export type Group = Base<types.GROUP, {
 }>
 
 export type Set = Base<types.SET, {
-  set: (Set | Range | Char)[];
+  set: SetTokens;
   not: boolean;
 }>
 

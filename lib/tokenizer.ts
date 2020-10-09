@@ -12,7 +12,7 @@ export const tokenizer = (regexpStr: string): Root => {
 
   // Keep track of last clause/group and stack.
   let lastGroup: Group | Root = start;
-  let last: Token[] = start.stack ?? [];
+  let last: Token[] = start.stack;
   let groupStack: (Group | Root)[] = [];
 
 

@@ -63,7 +63,7 @@ export const partialConstruct = (token: Tokens): string => {
       } else if (min === 1 && max === Infinity) {
         endWith = '+';
       } else if (min === 0 && max === Infinity) {
-        endWith = '\*';
+        endWith = '*';
       } else {
         endWith = max === Infinity ? `{${min},}`
           : `{${min}${min === max ? `` : `,${max}`}}`;

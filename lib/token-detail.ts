@@ -33,17 +33,18 @@ export function addDetail(token: Tokens & { flags?: string[] }, flags: string[] 
     value: detailedTokens | undefined = undefined,
     leftEnd: boolean = false,
     rightEnd: boolean = false
+
   switch (token.type) {
     case types.CHAR:
-      min = max = 1; stringOptions = [String.fromCharCode(token.value)]; 
-      
+      min = max = 1; stringOptions = [String.fromCharCode(token.value)];
       break;
+      
     case types.POSITION: // Currently does not handle \b and \B
       leftEnd = token.value === '^';
       rightEnd = token.value === '$';
       min = max = 0; stringOptions = ['']; 
-      
       break;
+
     case types.RANGE:
       for (let i = token.from; i <= token.to; i++) {
         stringOptions.push(String.fromCharCode(i));
@@ -55,15 +56,18 @@ export function addDetail(token: Tokens & { flags?: string[] }, flags: string[] 
       ];
       min = max = 1; 
       break;
+
     case types.SET:
       set = token.set.map(token => addDetail(token, flags))
-      if (token.not !== true)
+      if (token.not !== true) {
         stringOptions = set.reduce((t: string[] | undefined, { stringOptions }) => (stringOptions && t) ? [...t, ...stringOptions] : undefined, []);
-      else
+      } else {
         stringOptions = undefined; // This can be improved
+      };
       min = Math.min(...set.map(x => x.minChar));
       max = Math.max(...set.map(x => x.maxChar));
       break;
+
     case types.REPETITION:
       value = addDetail(token.value, flags)
       min = value.minChar * token.min; max = value.maxChar * token.max;
@@ -73,6 +77,7 @@ export function addDetail(token: Tokens & { flags?: string[] }, flags: string[] 
         };
       };
       break;
+
     case types.GROUP:
     case types.ROOT:
       if (token.stack) {
@@ -92,8 +97,9 @@ export function addDetail(token: Tokens & { flags?: string[] }, flags: string[] 
         rightEnd = temp.every(x => x.rightEnd)
       };
       break;
+      
     default:
-      throw new Error(`Invalid token ${token}`)
+      throw new Error(`Invalid token ${token}`);
   };
   // Have flags for left and right being 'artificially' bounded
   return {
@@ -121,8 +127,9 @@ export function handleStack(oldStack: Tokens[], flags: string[]) {
   let stringOptions: string[] | undefined = ['']; let i = 0;
   for (const t of stack) {
     stringOptions = stringOptions && t.stringOptions ? R.xprod(stringOptions, t.stringOptions).map(x => x.join('')) : undefined
-    if (t.type === types.GROUP && t.remember)
+    if (t.type === types.GROUP && t.remember) {
       t.reference = i++;
+    };
   };
   return {
     stack,

@@ -5,7 +5,7 @@ type Base<T, K> = { type: T } & K
 type ValueType<T, K> = Base<T, { value: K }>
 
 export type Root = Base<types.ROOT, {
-  stack: Token[];
+  stack?: Token[];
   options?: Token[][];
   flags?: string[];
 }>
@@ -20,7 +20,7 @@ export type Group = Base<types.GROUP, {
 }>
 
 export type Set = Base<types.SET, {
-  set: (Set | Range | Char)[];
+  set: SetTokens;
   not: boolean;
 }>
 

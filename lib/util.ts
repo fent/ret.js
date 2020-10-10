@@ -80,14 +80,3 @@ export const tokenizeClass = (str: string, regexpStr: string): [SetTokens, numbe
   };
   throw new SyntaxError('Invalid regular expression: /' + regexpStr + '/: Unterminated character class');
 };
-
-
-/**
- * Shortcut to throw errors.
- *
- * @param {string} regexp
- * @param {string} msg
- */
-export const error = (regexp: string, msg: string) => {
-  throw new SyntaxError('Invalid regular expression: /' + regexp + '/: ' + msg);
-};

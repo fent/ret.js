@@ -23,12 +23,16 @@ export const tokenizer = (regexpStr: string): Root => {
 
   // Keep track of last clause/group and stack.
   let lastGroup: Group | Root = start;
-  let last: Token[] = start.stack ?? [];
+  let last: Token[] = start.stack;
   let groupStack: (Group | Root)[] = [];
 
 
   const repeatErr = (i: number) => {
-    util.error(regexpStr, `Nothing to repeat at column ${i - 1}`);
+    throw new SyntaxError(
+      'Invalid regular expression: /' + 
+      regexpStr +
+      `/: Nothing to repeat at column ${i - 1}`
+    );
   };
 
   // Decode a few escaped characters.
@@ -152,9 +156,12 @@ export const tokenizer = (regexpStr: string): Root => {
             group.notFollowedBy = true;
 
           } else if (c !== ':') {
-            util.error(regexpStr,
-              `Invalid group, character '${c}'` +
-              ` after '?' at column ${i - 1}`);
+            throw new SyntaxError(
+              'Invalid regular expression: /' + 
+              regexpStr +
+              `/: Invalid group, character '${c}'` +
+              ` after '?' at column ${i - 1}`
+            );
           };
 
           group.remember = false;
@@ -177,7 +184,11 @@ export const tokenizer = (regexpStr: string): Root => {
       // Pop group out of stack.
       case ')':
         if (groupStack.length === 0) {
-          util.error(regexpStr, `Unmatched ) at column ${i - 1}`);
+          throw new SyntaxError(
+            'Invalid regular expression: /' + 
+            regexpStr +
+            `/: Unmatched ) at column ${i - 1}`
+          );
         };
         lastGroup = groupStack.pop();
 
@@ -289,7 +300,11 @@ export const tokenizer = (regexpStr: string): Root => {
 
   // Check if any groups have not been closed.
   if (groupStack.length !== 0) {
-    util.error(regexpStr, 'Unterminated group');
+    throw new SyntaxError(
+      'Invalid regular expression: /' + 
+      regexpStr +
+      '/: Unterminated group'
+    );
   };
 
   return start;

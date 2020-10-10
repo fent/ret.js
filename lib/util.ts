@@ -16,7 +16,7 @@ export const strToChars = (str: string) => {
   return str.replace(charsRegex, (s, b, lbs, a16, b16, c8, dctrl, eslsh) => {
     if (lbs) {
       return s;
-    }
+    };
 
     let code: number | undefined = b ? 8 :
       a16   ? parseInt(a16, 16) :
@@ -30,15 +30,16 @@ export const strToChars = (str: string) => {
       eslsh == 'f' ? 12 :
       eslsh == 'r' ? 13 : undefined;
 
-    if (!code)
-      throw new Error(`Code is undefined`)
+    if (!code) {
+      throw new Error(`Code is undefined`);
+    };
 
     let c = String.fromCharCode(code);
 
     // Escape special regex characters.
     if (/[[\]{}^$.|?*+()]/.test(c)) {
       c = '\\' + c;
-    }
+    };
 
     return c;
   });
@@ -71,22 +72,11 @@ export const tokenizeClass = (str: string, regexpStr: string): [SetTokens, numbe
       })
       ?? ((c = rs[12]) && { type: types.CHAR, value: c.charCodeAt(0) })
 
-    if (p) 
+    if (p) {
       tokens.push(p);
-    else 
+    } else {
       return [tokens, regexp.lastIndex];
+    };
   };
-  error(regexpStr, 'Unterminated character class')
-  throw new SyntaxError(`Invalid regular expression: ${str}: Unterminated character class`)
-};
-
-
-/**
- * Shortcut to throw errors.
- *
- * @param {string} regexp
- * @param {string} msg
- */
-export const error = (regexp: string, msg: string) => {
-  throw new SyntaxError('Invalid regular expression: /' + regexp + '/: ' + msg);
+  throw new SyntaxError('Invalid regular expression: /' + regexpStr + '/: Unterminated character class');
 };

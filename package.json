@@ -20,7 +20,7 @@
     "dist"
   ],
   "scripts": {
-    "test": "nyc --extension --reporter=lcov --reporter=text-summary vows -- --spec test/*-test.js",
+    "test": "nyc --extension .ts --reporter=lcov --reporter=text-summary vows -- --spec test/*-test.js",
     "build": "tsc",
     "prepare": "tsc"
   },

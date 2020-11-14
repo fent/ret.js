@@ -1,8 +1,8 @@
 const vows   = require('vows');
 const assert = require('assert');
-const util   = require('../lib/util');
-const types  = require('..').types;
-const sets   = require('../lib/sets');
+const util   = require('../dist/util');
+const types  = require('../dist').types;
+const sets   = require('../dist/sets');
 
 
 vows.describe('strToChars')
@@ -10,12 +10,12 @@ vows.describe('strToChars')
     'Convert escaped chars in str to their unescaped versions': {
       topic: () => {
         return util.strToChars(
-          '\\xFF hellow \\u00A3 \\50 there \\cB \\n \\w [\\b]');
+          '\\v \\xFF hellow \\u00A3 \\50 there \\cB \\n \\w [\\b]');
       },
 
       'Returned string has converted characters': (str) => {
         assert.equal(str,
-          '\xFF hellow \u00A3 \\( there  \n \\w \u0008');
+          '\v \xFF hellow \u00A3 \\( there  \n \\w \u0008');
       }
     },
     'Escaped chars in regex source remain espaced': {

@@ -15,11 +15,11 @@ const reduceStack = (stack: Token[]): string => stack.map(partialConstruct).join
 
 const createAlternate = (token: Root | Group): string => {
   if ('options' in token) {
-    return token.options?.map(reduceStack).join('|') ?? ''
+    return token.options.map(reduceStack).join('|');
   } else if ('stack' in token) {
     return reduceStack(token.stack);
   } else {
-    throw new Error(`options or stack must be within Root/Group: ${token}`);
+    throw new Error(`options or stack must be Root or Group token`);
   }
 };
 
@@ -31,15 +31,16 @@ export const partialConstruct = (token: Tokens): string => {
       return createAlternate(token);
     case types.CHAR:
       const c = String.fromCharCode(token.value);
-      return (/[[\]^.\/|?*+()]/.test(c) ? '\\' : '') + String.fromCharCode(token.value);
+      // console.log(c, c.valueOf(), String.raw`${c}`, Number(c.charCodeAt(0)).toString(16).toUpperCase());
+      return (/[[\]^.\/|?*+()]/.test(c) ? '\\' : '') + c;
     case types.POSITION:
       if (token.value === '^' || token.value === '$') {
-        return `${token.value}`;
+        return token.value;
       } else {
-        return `\\${token.value}`;
+        return '\\' + token.value;
       };
     case types.REFERENCE:
-      return `\\${token.value}`;
+      return '\\' + token.value;
     case types.SET:
       for (const [set, simplification] of simplifications) {
         if (JSON.stringify(set()) === JSON.stringify(token)) {
@@ -51,7 +52,7 @@ export const partialConstruct = (token: Tokens): string => {
       return `${String.fromCharCode(token.from)}-${String.fromCharCode(token.to)}`;
     case types.GROUP:
       // Check token.remember
-      return `(${!token.remember ? '?' : ''}${token.lookBehind ? '<' : ''}${token.followedBy ? '=' :
+      return `(${token.remember ? '' : '?'}${token.lookBehind ? '<' : ''}${token.followedBy ? '=' :
           token.notFollowedBy ? '!' :
             (token.remember ? '' : ':')
         }${createAlternate(token)})`

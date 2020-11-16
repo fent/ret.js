@@ -1,8 +1,10 @@
 const vows = require('vows');
 const assert = require('assert');
 const ret = require('../dist');
+const { tokenToString } = require('typescript');
 const reconstruct = require('../dist/reconstruct').reconstruct
 const partialConstruct = require('../dist/reconstruct').partialConstruct
+const tokens = require('../dist/types').types
 
 const inverseTestFactory = (regexp) => {
   return {
@@ -65,10 +67,18 @@ vows.describe('Regexp Reconstruction')
       '^ and $ in': inverseTestFactory('^yes$'),
       '\\b and \\B': inverseTestFactory('\\bbeginning\\B'),
       'Predefined sets': inverseTestFactory('\\w\\W\\d\\D\\s\\S.'),
-      'Custom Sets': inverseTestFactory('[$!a-z123] thing [^0-9]'),
+      'Custom Sets': multiInverseTestFactory([
+        '[$!a-z123] thing [^0-9]',
+        '[^.]',
+        '[^test]'
+      ]),
       'Whitespace characters': inverseTestFactory('[\t\r\n\u2028\u2029 ]'),
       'Two sets in a row with dash in between': inverseTestFactory('[01]-[ab]'),
-      '| (Pipe)': inverseTestFactory('foo|bar|za'),
+      '| (Pipe)': multiInverseTestFactory([
+        'foo|bar|za',
+        '(foo|bar|za)',
+        '(foo|bar|za)|(^fe|fi|fo|fum)',
+      ]),
       'Group': {
         'with no special characters': inverseTestFactory('hey (there)'),
         'that is not rememered': inverseTestFactory('(?:loner)'),
@@ -86,8 +96,48 @@ vows.describe('Regexp Reconstruction')
           '+ (At least one)': inverseTestFactory('(no )+'),
           '* (Any amount)': inverseTestFactory('XF*D'),
         },
+        // 'Lookarounds': multiInverseTestFactory([
+        //   '(?<=a)b',
+        //   '(?<=text)',
+        //   '(?<!a)b',
+        //   '(?<!text)',
+        //   '(?<!ab{2,4}c{3,5}d)test'
+        // ]),
+        'Unicode Characters': multiInverseTestFactory([
+          //  '[A\\xA9\\u2603]|\\uD834\\uDF06',
+          //  '[\\0-@\\{-\\uD7FF\\uE000-\\uFFFF]|[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|[\\uD800-\\uDBFF](?![\\uDC00-\\uDFFF])|(?:[^\\uD800-\\uDBFF]|^)[\\uDC00-\\uDFFF]'
+        ]),
         'Reference': inverseTestFactory('<(\\w+)>\\w*<\\1>'),
-      }
-    }
+      },
+      'Reconstruct error test (bad root)': {
+        'topic': () => {
+          try {
+            reconstruct({ type : ret.types.ROOT });
+          } catch (e) {
+            return e;
+          }
+        },
+
+        'throws error emessage': (err) => {
+          assert.isObject(err);
+          assert.include(err.message, 'options or stack must be Root or Group token');
+        },
+      },
+
+      'Reconstruct error test (invalid token)': {
+        'topic': () => {
+          try {
+            reconstruct({});
+          } catch (e) {
+            return e;
+          }
+        },
+
+        'throws error emessage': (err) => {
+          assert.isObject(err);
+          assert.include(err.message, 'Invalid token type');
+        },
+      },
+    },
   })
   .export(module);

@@ -13,14 +13,14 @@
     "type": "git",
     "url": "git://github.com/fent/ret.js.git"
   },
-  "author": "fent (https://github.com/fent)",
+  "author": "fent <fentbox@gmail.com> (https://github.com/fent)",
   "main": "./lib/index.js",
   "types": "./typings/index.d.ts",
   "files": [
     "dist"
   ],
   "scripts": {
-    "test": "nyc --extension --reporter=lcov --reporter=text-summary vows -- --spec test/*-test.js",
+    "test": "nyc --extension .ts --reporter=lcov --reporter=text-summary vows -- --spec test/*-test.js",
     "build": "tsc",
     "prepare": "tsc"
   },
@@ -31,7 +31,7 @@
     "vows": "^0.8.3"
   },
   "engines": {
-    "node": ">=4"
+    "node": ">=10"
   },
   "license": "MIT",
   "dependencies": {}

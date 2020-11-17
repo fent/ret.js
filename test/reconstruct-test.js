@@ -69,7 +69,7 @@ vows.describe('Regexp Reconstruction')
       'Predefined sets': inverseTestFactory('\\w\\W\\d\\D\\s\\S.'),
       'Custom Sets': multiInverseTestFactory([
         '[$!a-z123] thing [^0-9]',
-        '[^.]',
+        '[^\\.]',
         '[^test]'
       ]),
       'Whitespace characters': inverseTestFactory('[\t\r\n\u2028\u2029 ]'),

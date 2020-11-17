@@ -31,22 +31,21 @@ export const partialConstruct = (token: Tokens): string => {
       return createAlternate(token);
     case types.CHAR:
       const c = String.fromCharCode(token.value);
-      // console.log(c, c.valueOf(), String.raw`${c}`, Number(c.charCodeAt(0)).toString(16).toUpperCase());
       return (/[[\]^.\/|?*+()]/.test(c) ? '\\' : '') + c;
     case types.POSITION:
       if (token.value === '^' || token.value === '$') {
         return token.value;
       } else {
         return '\\' + token.value;
-      };
+      }
     case types.REFERENCE:
       return '\\' + token.value;
     case types.SET:
       for (const [set, simplification] of simplifications) {
         if (JSON.stringify(set()) === JSON.stringify(token)) {
           return simplification;
-        };
-      };
+        }
+      }
       return `[${token.not ? '^' : ''}${reduceStack(token.set)}]`;
     case types.RANGE:
       return `${String.fromCharCode(token.from)}-${String.fromCharCode(token.to)}`;
@@ -72,5 +71,5 @@ export const partialConstruct = (token: Tokens): string => {
       return `${partialConstruct(token.value)}${endWith}`;
     default:
       throw new Error(`Invalid token type ${token}`);
-  };
+  }
 };

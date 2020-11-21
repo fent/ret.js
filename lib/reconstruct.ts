@@ -51,7 +51,7 @@ export const partialConstruct = (token: Tokens): string => {
       return `${String.fromCharCode(token.from)}-${String.fromCharCode(token.to)}`;
     case types.GROUP:
       // Check token.remember
-      return `(${token.remember ? '' : '?'}${token.lookBehind ? '<' : ''}${token.followedBy ? '=' :
+      return `(${token.remember ? '' : '?'}${token.followedBy ? '=' :
           token.notFollowedBy ? '!' :
             (token.remember ? '' : ':')
         }${createAlternate(token)})`

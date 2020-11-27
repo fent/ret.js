@@ -81,7 +81,7 @@ vows.describe('Regexp Reconstruction')
       ]),
       'Group': {
         'with no special characters': inverseTestFactory('hey (there)'),
-        'that is not rememered': inverseTestFactory('(?:loner)'),
+        'that is not remembered': inverseTestFactory('(?:loner)'),
         'matched previous clause if not followed by this': inverseTestFactory('what(?!ever)'),
         'matched next clause': inverseTestFactory('hello(?= there)'),
         'with subgroup': inverseTestFactory('a(b(c|(?:d))fg) @_@')

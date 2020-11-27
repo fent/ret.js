@@ -29,6 +29,30 @@ let tokens = ret(/foo|bar/.source);
 }
 ```
 
+# Reconstructing Regular Expressions from Tokens
+
+```ts
+import { reconstruct, partialConstruct, types } from 'ret'
+
+const tokens = ret(/foo|bar/.source)
+const setToken = {
+    "type": ret.types.SET,
+    "set": [
+      { "type": types.CHAR, "value": 97 },
+      { "type": types.CHAR, "value": 98 },
+      { "type": types.CHAR, "value": 99 }
+    ],
+    "not": true
+  }
+
+reconstruct(tokens)                                    // 'foo|bar'
+partialConstruct({ "type": types.CHAR, "value", 102 }) // 'f'
+partialConstruct(setToken)                             // '^abc'
+```
+
+The `reconstruct` function accepts a `Root` token and returns the string associated to that token. The `partialConstruct` function accepts *any* token and returns the *component* of the regular expression that is associated with that token.
+
+
 # Token Types
 
 `ret.types` is a collection of the various token types exported by ret.

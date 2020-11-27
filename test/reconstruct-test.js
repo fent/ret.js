@@ -13,13 +13,21 @@ const inverseTestFactory = (regexp) => {
     [`Checking ${regexp} reconstructs`]: (t) => {
       const reconstructed = reconstruct(t) // May need to do some sort of sanitisation here
       assert.isString(reconstructed);
-      assert.deepStrictEqual(reconstructed, regexp.replace('[^0-9]', '\\D'))
+      assert.deepStrictEqual(reconstructed, regexp.replace(/\[\^0\-9\]/g, '\\D')
+                                                  .replace(/\[0\-9\]/g, '\\d')
+                                                  .replace(/\[\^\_a\-zA\-Z0\-9\]/g, '\\W')
+                                                  .replace(/\[\_a\-zA\-Z0\-9\]/g, '\\w')
+      )
     },
 
     [`Checking ${regexp} reconstructs using partialConstruct`]: (t) => {
       const reconstructed = partialConstruct(t) // May need to do some sort of sanitisation here
       assert.isString(reconstructed);
-      assert.deepStrictEqual(reconstructed, regexp.replace('[^0-9]', '\\D'))
+      assert.deepStrictEqual(reconstructed, regexp.replace(/\[\^0\-9\]/g, '\\D')
+                                                  .replace(/\[0\-9\]/g, '\\d')
+                                                  .replace(/\[\^\_a\-zA\-Z0\-9\]/g, '\\W')
+                                                  .replace(/\[\_a\-zA\-Z0\-9\]/g, '\\w')
+      )
     }
   }
 }
@@ -108,6 +116,73 @@ vows.describe('Regexp Reconstruction')
           //  '[\\0-@\\{-\\uD7FF\\uE000-\\uFFFF]|[\\uD800-\\uDBFF][\\uDC00-\\uDFFF]|[\\uD800-\\uDBFF](?![\\uDC00-\\uDFFF])|(?:[^\\uD800-\\uDBFF]|^)[\\uDC00-\\uDFFF]'
         ]),
         'Reference': inverseTestFactory('<(\\w+)>\\w*<\\1>'),
+        'Simplifications': multiInverseTestFactory([
+          '[_a-zA-Z0-9]',
+          '[0-9]',
+          '[^_a-zA-Z0-9]',
+          '[^0-9]',
+          ]),
+        'Set simplification tests': {
+          'INTS': {
+            'topic': [{ type: types.RANGE, from: 48, to: 57 }],   
+            'Set simplification works': (set) => {
+              assert.deepStrictEqual(partialConstruct({ type: types.SET, set, not: false }), '\\d')
+            },
+            'Negative set simplification works': (set) => {
+              assert.deepStrictEqual(partialConstruct({ type: types.SET, set, not: true }), '\\D')
+            },
+          },
+          'WORDS': {
+            'topic': [
+              { type: types.CHAR, value: 95 },
+              { type: types.RANGE, from: 97, to: 122 },
+              { type: types.RANGE, from: 65, to: 90 },
+              { type: types.RANGE , from: 48, to: 57 }
+            ],
+            'Set simplification works': (set) => {
+              assert.deepStrictEqual(partialConstruct({ type: types.SET, set, not: false }), '\\w')
+            },
+            'Negative set simplification works': (set) => {
+              assert.deepStrictEqual(partialConstruct({ type: types.SET, set, not: true }), '\\W')
+            },
+          },
+          'WHITESPACE': {
+            'topic': [
+              { type: types.CHAR, value: 9 },
+              { type: types.CHAR, value: 10 },
+              { type: types.CHAR, value: 11 },
+              { type: types.CHAR, value: 12 },
+              { type: types.CHAR, value: 13 },
+              { type: types.CHAR, value: 32 },
+              { type: types.CHAR, value: 160 },
+              { type: types.CHAR, value: 5760 },
+              { type: types.RANGE, from: 8192, to: 8202 },
+              { type: types.CHAR, value: 8232 },
+              { type: types.CHAR, value: 8233 },
+              { type: types.CHAR, value: 8239 },
+              { type: types.CHAR, value: 8287 },
+              { type: types.CHAR, value: 12288 },
+              { type: types.CHAR, value: 65279 }
+            ], 
+            'Set simplification works': (set) => {
+              assert.deepStrictEqual(partialConstruct({ type: types.SET, set, not: false }), '\\s')
+            },
+            'Negative set simplification works': (set) => {
+              assert.deepStrictEqual(partialConstruct({ type: types.SET, set, not: true }), '\\S')
+            },
+          },
+          'NOTANYCHAR': {
+            'topic': [
+              { type: types.CHAR, value: 10 },
+              { type: types.CHAR, value: 13 },
+              { type: types.CHAR, value: 8232 },
+              { type: types.CHAR, value: 8233 },
+            ],    
+            'Set simplification works': (set) => {
+              assert.deepStrictEqual(partialConstruct({ type: types.SET, set, not: true }), '.')
+            },
+          },
+        },
       },
       'Reconstruct error test (bad root)': {
         'topic': () => {
@@ -117,13 +192,11 @@ vows.describe('Regexp Reconstruction')
             return e;
           }
         },
-
         'throws error emessage': (err) => {
           assert.isObject(err);
           assert.include(err.message, 'options or stack must be Root or Group token');
         },
       },
-
       'Reconstruct error test (invalid token)': {
         'topic': () => {
           try {
@@ -132,7 +205,6 @@ vows.describe('Regexp Reconstruction')
             return e;
           }
         },
-
         'throws error emessage': (err) => {
           assert.isObject(err);
           assert.include(err.message, 'Invalid token type');

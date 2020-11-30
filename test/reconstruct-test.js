@@ -115,10 +115,10 @@ vows.describe('Regexp Reconstruction')
           'INTS': {
             'topic': [{ type: types.RANGE, from: 48, to: 57 }],   
             'Set simplification works': (set) => {
-              assert.deepStrictEqual(partialConstruct({ type: types.SET, set, not: false }), '\\d')
+              assert.deepStrictEqual(reconstruct({ type: types.SET, set, not: false }), '\\d')
             },
             'Negative set simplification works': (set) => {
-              assert.deepStrictEqual(partialConstruct({ type: types.SET, set, not: true }), '\\D')
+              assert.deepStrictEqual(reconstruct({ type: types.SET, set, not: true }), '\\D')
             },
           },
           'WORDS': {
@@ -129,10 +129,10 @@ vows.describe('Regexp Reconstruction')
               { type: types.RANGE , from: 48, to: 57 }
             ],
             'Set simplification works': (set) => {
-              assert.deepStrictEqual(partialConstruct({ type: types.SET, set, not: false }), '\\w')
+              assert.deepStrictEqual(reconstruct({ type: types.SET, set, not: false }), '\\w')
             },
             'Negative set simplification works': (set) => {
-              assert.deepStrictEqual(partialConstruct({ type: types.SET, set, not: true }), '\\W')
+              assert.deepStrictEqual(reconstruct({ type: types.SET, set, not: true }), '\\W')
             },
           },
           'WHITESPACE': {
@@ -154,10 +154,10 @@ vows.describe('Regexp Reconstruction')
               { type: types.CHAR, value: 65279 }
             ], 
             'Set simplification works': (set) => {
-              assert.deepStrictEqual(partialConstruct({ type: types.SET, set, not: false }), '\\s')
+              assert.deepStrictEqual(reconstruct({ type: types.SET, set, not: false }), '\\s')
             },
             'Negative set simplification works': (set) => {
-              assert.deepStrictEqual(partialConstruct({ type: types.SET, set, not: true }), '\\S')
+              assert.deepStrictEqual(reconstruct({ type: types.SET, set, not: true }), '\\S')
             },
           },
           'NOTANYCHAR': {
@@ -168,7 +168,7 @@ vows.describe('Regexp Reconstruction')
               { type: types.CHAR, value: 8233 },
             ],    
             'Set simplification works': (set) => {
-              assert.deepStrictEqual(partialConstruct({ type: types.SET, set, not: true }), '.')
+              assert.deepStrictEqual(reconstruct({ type: types.SET, set, not: true }), '.')
             },
           },
         },

@@ -3,7 +3,6 @@ const assert = require('assert');
 const ret = require('../dist');
 const { tokenToString } = require('typescript');
 const reconstruct = require('../dist/reconstruct').reconstruct
-const partialConstruct = require('../dist/reconstruct').partialConstruct
 const types = require('../dist/types').types
 
 const inverseTestFactory = (regexp) => {
@@ -12,16 +11,6 @@ const inverseTestFactory = (regexp) => {
 
     [`Checking ${regexp} reconstructs`]: (t) => {
       const reconstructed = reconstruct(t) // May need to do some sort of sanitisation here
-      assert.isString(reconstructed);
-      assert.deepStrictEqual(reconstructed, regexp.replace(/\[\^0\-9\]/g, '\\D')
-                                                  .replace(/\[0\-9\]/g, '\\d')
-                                                  .replace(/\[\^\_a\-zA\-Z0\-9\]/g, '\\W')
-                                                  .replace(/\[\_a\-zA\-Z0\-9\]/g, '\\w')
-      )
-    },
-
-    [`Checking ${regexp} reconstructs using partialConstruct`]: (t) => {
-      const reconstructed = partialConstruct(t)
       assert.isString(reconstructed);
       assert.deepStrictEqual(reconstructed, regexp.replace(/\[\^0\-9\]/g, '\\D')
                                                   .replace(/\[0\-9\]/g, '\\d')

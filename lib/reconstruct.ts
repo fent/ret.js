@@ -23,9 +23,7 @@ const createAlternate = (token: Root | Group): string => {
   }
 };
 
-export const reconstruct = (regexpToken: Root): string => partialConstruct(regexpToken);
-
-export const partialConstruct = (token: Tokens): string => {
+export const reconstruct = (token: Tokens): string => {
   switch (token.type) {
     case types.ROOT:
       return createAlternate(token);
@@ -68,7 +66,7 @@ export const partialConstruct = (token: Tokens): string => {
         endWith = max === Infinity ? `{${min},}`
           : `{${min}${min === max ? `` : `,${max}`}}`;
       }
-      return `${partialConstruct(token.value)}${endWith}`;
+      return `${reconstruct(token.value)}${endWith}`;
     default:
       throw new Error(`Invalid token type ${token}`);
   }

@@ -11,7 +11,7 @@ const simplifications: [sets.SetFunc, string][] = [
   [sets.anyChar, '.']
 ];
 
-const reduceStack = (stack: Token[]): string => stack.map(partialConstruct).join('');
+const reduceStack = (stack: Token[]): string => stack.map(reconstruct).join('');
 
 const createAlternate = (token: Root | Group): string => {
   if ('options' in token) {

@@ -36,7 +36,7 @@ import { reconstruct, partialConstruct, types } from 'ret'
 
 const tokens = ret(/foo|bar/.source)
 const setToken = {
-    "type": ret.types.SET,
+    "type": types.SET,
     "set": [
       { "type": types.CHAR, "value": 97 },
       { "type": types.CHAR, "value": 98 },

@@ -2,6 +2,9 @@
 
 Tokenizes strings that represent a regular expressions.
 
+![Depfu](https://img.shields.io/depfu/fent/ret.js)
+[![codecov](https://codecov.io/gh/fent/ret.js/branch/master/graph/badge.svg)](https://codecov.io/gh/fent/ret.js)
+
 # Usage
 
 ```js

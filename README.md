@@ -2,9 +2,6 @@
 
 Tokenizes strings that represent a regular expressions.
 
-[![Dependency Status](https://david-dm.org/fent/ret.js.svg)](https://david-dm.org/fent/ret.js)
-[![codecov](https://codecov.io/gh/fent/ret.js/branch/master/graph/badge.svg)](https://codecov.io/gh/fent/ret.js)
-
 # Usage
 
 ```js
@@ -31,6 +28,8 @@ let tokens = ret(/foo|bar/.source);
 
 # Reconstructing Regular Expressions from Tokens
 
+The `reconstruct` function accepts a *any* token and returns, as a string, the *component* of the regular expression that is associated with that token.
+
 ```ts
 import { reconstruct, types } from 'ret'
 
@@ -46,12 +45,9 @@ const setToken = {
   }
 
 reconstruct(tokens)                               // 'foo|bar'
-reconstruct({ "type": types.CHAR, "value", 102 }) // 'f'
+reconstruct({ "type": types.CHAR, "value": 102 }) // 'f'
 reconstruct(setToken)                             // '^abc'
 ```
-
-The `reconstruct` function accepts a `Root` token and returns the string associated to that token. The `partialConstruct` function accepts *any* token and returns the *component* of the regular expression that is associated with that token.
-
 
 # Token Types
 
@@ -181,20 +177,21 @@ Represents a single character token. `value` is the character code. This might s
 
 ret.js will throw errors if given a string with an invalid regular expression. All possible errors are
 
-* Invalid group. When a group with an immediate `?` character is followed by an invalid character. It can only be followed by `!`, `=`, or `:`. Example: `/(?_abc)/`
-* Nothing to repeat. Thrown when a repetitional token is used as the first token in the current clause, as in right in the beginning of the regexp or group, or right after a pipe. Example: `/foo|?bar/`, `/{1,3}foo|bar/`, `/foo(+bar)/`
-* Unmatched ). A group was not opened, but was closed. Example: `/hello)2u/`
-* Unterminated group. A group was not closed. Example: `/(1(23)4/`
-* Unterminated character class. A custom character set was not closed. Example: `/[abc/`
+* Invalid group. When a group with an immediate`?` character is followed by an invalid character. It can only be followed by`!`,`=`, or`:`. Example:`/(?_abc)/`
+* Nothing to repeat. Thrown when a repetitional token is used as the first token in the current clause, as in right in the beginning of the regexp or group, or right after a pipe. Example:`/foo|?bar/`,`/{1,3}foo|bar/`,`/foo(+bar)/`
+* Unmatched ). A group was not opened, but was closed. Example:`/hello)2u/`
+* Unterminated group. A group was not closed. Example:`/(1(23)4/`
+* Unterminated character class. A custom character set was not closed. Example:`/[abc/`
 
 # Regular Expression Syntax
 
 Regular expressions follow the [JavaScript syntax](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp).
 
 The following latest JavaScript additions are not supported yet:
-* `\p` and `\P`: [Unicode property escapes](https://github.com/tc39/proposal-regexp-unicode-property-escapes)
-* `(?<group>)` and `\k<group>`: [Named groups](https://github.com/tc39/proposal-regexp-named-groups)
-* `(?<=)` and `(?<!)`: [Negative lookbehind assertions](https://github.com/tc39/proposal-regexp-lookbehind)
+
+* `\p` and`\P`:[Unicode property escapes](https://github.com/tc39/proposal-regexp-unicode-property-escapes)
+* `(?<group>)` and`\k<group>`:[Named groups](https://github.com/tc39/proposal-regexp-named-groups)
+* `(?<=)` and`(?<!)`:[Negative lookbehind assertions](https://github.com/tc39/proposal-regexp-lookbehind)
 
 # Examples
 
@@ -263,7 +260,7 @@ The following latest JavaScript additions are not supported yet:
 `/\w/`
 
 ```js
-// Similar logic for `\W`, `\d`, `\D`, `\s` and `\S`    
+// Similar logic for `\W`, `\d`, `\D`, `\s` and `\S`  
 {
   "type": ret.types.ROOT,
   "stack": [{
@@ -526,8 +523,9 @@ The following latest JavaScript additions are not supported yet:
 
 # Install
 
-    npm install ret
-
+```
+npm install ret
+```
 
 # Tests
 
@@ -540,3 +538,4 @@ npm test
 # Security
 
 To report a security vulnerability, please use the [Tidelift security contact](https://tidelift.com/security). Tidelift will coordinate the fix and disclosure.
+

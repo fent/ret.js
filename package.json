@@ -14,8 +14,7 @@
     "url": "git://github.com/fent/ret.js.git"
   },
   "author": "fent <fentbox@gmail.com> (https://github.com/fent)",
-  "main": "./lib/index.js",
-  "types": "./typings/index.d.ts",
+  "main": "./dist/index.js",
   "files": [
     "dist"
   ],

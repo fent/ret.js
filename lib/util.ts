@@ -49,7 +49,8 @@ export const strToChars = (str: string): string => {
  */
 export const tokenizeClass = (str: string, regexpStr: string): [SetTokens, number] => {
   let tokens: SetTokens = [], rs: string[] | null, c: string;
-  const regexp = /\\(?:(w)|(d)|(s)|(W)|(D)|(S))|((?:(?:\\)(.)|([^\]\\]))-(?:\\)?([^\]]))|(\])|(?:\\)?([^])/g;
+  const regexp =
+  /\\(?:(w)|(d)|(s)|(W)|(D)|(S))|((?:(?:\\)(.)|([^\]\\]))-(((?:\\)])|(((?:\\)?([^\]])))))|(\])|(?:\\)?([^])/g;
 
   while ((rs = regexp.exec(str)) !== null) {
     const p = (rs[1] && sets.words()) ??
@@ -61,9 +62,9 @@ export const tokenizeClass = (str: string, regexpStr: string): [SetTokens, numbe
       (rs[7] && {
         type: types.RANGE,
         from: (rs[8] || rs[9]).charCodeAt(0),
-        to: rs[10].charCodeAt(0),
+        to: (c = rs[10]).charCodeAt(c.length - 1),
       }) ??
-      ((c = rs[12]) && { type: types.CHAR, value: c.charCodeAt(0) });
+      ((c = rs[16]) && { type: types.CHAR, value: c.charCodeAt(0) });
 
     if (p) {
       tokens.push(p);

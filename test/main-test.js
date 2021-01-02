@@ -587,6 +587,21 @@ vows.describe('Regexp Tokenizer')
             });
           },
         },
+        'token.to is a closing square bracket [[-]]': {
+          topic: ret('[[-]]'),
+          'Tokenizes correctly': t => {
+            assert.deepStrictEqual(t, {
+              type: types.ROOT, stack: [{
+                type: types.SET, not: false, set: [
+                  { type: types.CHAR, value: 91 },
+                  { type: types.CHAR, value: 45 },
+                ],
+              }, {
+                type: types.CHAR, value: 93
+              }],
+            });
+          },
+        },
         'Contains emtpy set': {
           topic: ret('[]'),
           'Tokenizes correctly': t => {

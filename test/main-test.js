@@ -539,13 +539,13 @@ vows.describe('Regexp Tokenizer')
             });
           },
         },
-        'token.from is a caret and the range is the first item of the set [\\^-9]': {
-          topic: ret('[\\^-9]'),
+        'token.from is a caret and the range is the first item of the set [9-\\^]': {
+          topic: ret('[9-\\^]'),
           'Tokenizes correctly': t => {
             assert.deepStrictEqual(t, {
               type: types.ROOT, stack: [{
                 type: types.SET, not: false, set: [
-                  { type: types.RANGE, from: 94, to: 57 },
+                  { type: types.RANGE, from: 57, to: 94 },
                 ],
               }],
             });
@@ -563,13 +563,13 @@ vows.describe('Regexp Tokenizer')
             });
           },
         },
-        'token.to is a closing square bracket [\\^-\\]]': {
-          topic: ret('[\\^-\\]]'),
+        'token.to is a closing square bracket [\\]-\\^]': {
+          topic: ret('[\\]-\\^]'),
           'Tokenizes correctly': t => {
             assert.deepStrictEqual(t, {
               type: types.ROOT, stack: [{
                 type: types.SET, not: false, set: [
-                  { type: types.RANGE, from: 94, to: 93 },
+                  { type: types.RANGE, from: 93, to: 94 },
                 ],
               }],
             });

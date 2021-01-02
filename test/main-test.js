@@ -602,6 +602,54 @@ vows.describe('Regexp Tokenizer')
             });
           },
         },
+        'token.from is a caret [\\^-_]': {
+          topic: ret('[\\^-_]'),
+          'Tokenizes correctly': t => {
+            assert.deepStrictEqual(t, {
+              type: types.ROOT, stack: [{
+                type: types.SET, not: false, set: [
+                  { type: types.RANGE, from: 94, to: 95 },
+                ],
+              }],
+            });
+          },
+        },
+        'token.from is a caret [\\^-^]': {
+          topic: ret('[\\^-^]'),
+          'Tokenizes correctly': t => {
+            assert.deepStrictEqual(t, {
+              type: types.ROOT, stack: [{
+                type: types.SET, not: false, set: [
+                  { type: types.RANGE, from: 94, to: 94 },
+                ],
+              }],
+            });
+          },
+        },
+        'token.from is a caret and set is negated [^\\^-_]': {
+          topic: ret('[^\\^-_]'),
+          'Tokenizes correctly': t => {
+            assert.deepStrictEqual(t, {
+              type: types.ROOT, stack: [{
+                type: types.SET, not: true, set: [
+                  { type: types.RANGE, from: 94, to: 95 },
+                ],
+              }],
+            });
+          },
+        },
+        'token.from is a caret [\\^-^] and set is negated': {
+          topic: ret('[^\\^-^]'),
+          'Tokenizes correctly': t => {
+            assert.deepStrictEqual(t, {
+              type: types.ROOT, stack: [{
+                type: types.SET, not: true, set: [
+                  { type: types.RANGE, from: 94, to: 94 },
+                ],
+              }],
+            });
+          },
+        },
         'Contains emtpy set': {
           topic: ret('[]'),
           'Tokenizes correctly': t => {

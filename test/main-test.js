@@ -597,7 +597,7 @@ vows.describe('Regexp Tokenizer')
                   { type: types.CHAR, value: 45 },
                 ],
               }, {
-                type: types.CHAR, value: 93
+                type: types.CHAR, value: 93,
               }],
             });
           },

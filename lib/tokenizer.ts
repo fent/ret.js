@@ -1,13 +1,15 @@
-import * as util from './util'
-import { Group, types, Root, Token } from './types'
-import * as sets from './sets'
+import * as util from './util';
+import { Group, types, Root, Token } from './types';
+import * as sets from './sets';
 
 /**
  * Tokenizes a regular expression (that is currently a string)
- * @param regexpStr String of regular expression to be tokenized
+ * @param {string} regexpStr String of regular expression to be tokenized
+ *
+ * @returns {Root}
  */
 export const tokenizer = (regexpStr: string): Root => {
-  let i: number = 0, c: string;
+  let i = 0, c: string;
   let start: Root = { type: types.ROOT, stack: [] };
 
   // Keep track of last clause/group and stack.
@@ -15,12 +17,11 @@ export const tokenizer = (regexpStr: string): Root => {
   let last: Token[] = start.stack;
   let groupStack: (Group | Root)[] = [];
 
-
-  const repeatErr = (i: number) => {
+  const repeatErr = (col: number) => {
     throw new SyntaxError(
-      'Invalid regular expression: /' + 
-      regexpStr +
-      `/: Nothing to repeat at column ${i - 1}`
+      `Invalid regular expression: /${
+        regexpStr
+      }/: Nothing to repeat at column ${col - 1}`,
     );
   };
 
@@ -34,11 +35,11 @@ export const tokenizer = (regexpStr: string): Root => {
       case '\\':
         switch (c = str[i++]) {
           case 'b':
-            last.push({ type: types.POSITION, value: 'b'});
+            last.push({ type: types.POSITION, value: 'b' });
             break;
 
           case 'B':
-            last.push({ type: types.POSITION, value: 'B'});
+            last.push({ type: types.POSITION, value: 'B' });
             break;
 
           case 'w':
@@ -74,8 +75,8 @@ export const tokenizer = (regexpStr: string): Root => {
             // Escaped character.
             } else {
               last.push({ type: types.CHAR, value: c.charCodeAt(0) });
-            };
-        };
+            }
+        }
 
         break;
 
@@ -113,7 +114,7 @@ export const tokenizer = (regexpStr: string): Root => {
         });
 
         break;
-      };
+      }
 
 
       // Class of any character except \n.
@@ -143,18 +144,17 @@ export const tokenizer = (regexpStr: string): Root => {
           // Match if not followed by.
           } else if (c === '!') {
             group.notFollowedBy = true;
-
           } else if (c !== ':') {
             throw new SyntaxError(
-              'Invalid regular expression: /' + 
-              regexpStr +
-              `/: Invalid group, character '${c}'` +
-              ` after '?' at column ${i - 1}`
+              `Invalid regular expression: /${
+                regexpStr
+              }/: Invalid group, character '${c}'` +
+              ` after '?' at column ${i - 1}`,
             );
-          };
+          }
 
           group.remember = false;
-        };
+        }
 
         // Insert subgroup into current group stack.
         last.push(group);
@@ -174,17 +174,17 @@ export const tokenizer = (regexpStr: string): Root => {
       case ')':
         if (groupStack.length === 0) {
           throw new SyntaxError(
-            'Invalid regular expression: /' + 
-            regexpStr +
-            `/: Unmatched ) at column ${i - 1}`
+            `Invalid regular expression: /${
+              regexpStr
+            }/: Unmatched ) at column ${i - 1}`,
           );
-        };
+        }
         lastGroup = groupStack.pop();
 
         // Check if this group has a PIPE.
         // To get back the correct last stack.
         last = lastGroup.options ?
-          lastGroup.options[lastGroup.options.length - 1] : 
+          lastGroup.options[lastGroup.options.length - 1] :
           lastGroup.stack;
 
         break;
@@ -197,14 +197,14 @@ export const tokenizer = (regexpStr: string): Root => {
         if (!lastGroup.options) {
           lastGroup.options = [lastGroup.stack];
           delete lastGroup.stack;
-        };
+        }
         // Create a new stack and add to options for rest of clause.
         let stack: Token[] = [];
         lastGroup.options.push(stack);
         last = stack;
 
         break;
-      };
+      }
 
 
       // Repetition.
@@ -233,10 +233,10 @@ export const tokenizer = (regexpStr: string): Root => {
             type: types.CHAR,
             value: 123,
           });
-        };
+        }
 
         break;
-      };
+      }
 
       case '?':
         if (last.length === 0) {
@@ -283,18 +283,17 @@ export const tokenizer = (regexpStr: string): Root => {
           type: types.CHAR,
           value: c.charCodeAt(0),
         });
-    };
-
-  };
+    }
+  }
 
   // Check if any groups have not been closed.
   if (groupStack.length !== 0) {
     throw new SyntaxError(
-      'Invalid regular expression: /' + 
-      regexpStr +
-      '/: Unterminated group'
+      `Invalid regular expression: /${
+        regexpStr
+      }/: Unterminated group`,
     );
-  };
+  }
 
   return start;
 };

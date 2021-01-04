@@ -7,4 +7,4 @@ export enum types {
   REPETITION,
   REFERENCE,
   CHAR
-};
+}

@@ -1,4 +1,4 @@
-import { types } from './types'
+import { types } from './types';
 
 type Base<T, K> = { type: T } & K
 
@@ -12,7 +12,7 @@ export type Root = Base<types.ROOT, {
 
 export type Group = Base<types.GROUP, {
   stack?: Token[];
-  options?: Token[][];  
+  options?: Token[][];
   remember: boolean;
   followedBy?: boolean;
   notFollowedBy?: boolean;
@@ -35,11 +35,11 @@ export type Repetition = Base<types.REPETITION, {
   value: Token;
 }>
 
-export type Position  = ValueType<types.POSITION, '$' | '^' | 'b' | 'B'>
+export type Position = ValueType<types.POSITION, '$' | '^' | 'b' | 'B'>
 export type Reference = ValueType<types.REFERENCE, number>
-export type Char      = ValueType<types.CHAR, number>
+export type Char = ValueType<types.CHAR, number>
 
-export type Token =  Group | Position | Set | Range | Repetition | Reference | Char
+export type Token = Group | Position | Set | Range | Repetition | Reference | Char
 export type Tokens = Root | Token
 
 export type SetTokens = (Range | Char | Set)[]

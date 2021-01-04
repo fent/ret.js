@@ -1,37 +1,33 @@
-const vows   = require('vows');
+const vows = require('vows');
 const assert = require('assert');
-const sets   = require('../dist/sets');
-const ret    = require('../dist');
-const types  = ret.types;
+const sets = require('../dist/sets');
+const ret = require('../dist');
+const types = ret.types;
 
 
-const char = (c) => {
-  return { type: types.CHAR, value: c.charCodeAt(0) };
-};
+const char = c => ({ type: types.CHAR, value: c.charCodeAt(0) });
 
-const charStr = (str) => {
-  return str.split('').map(char);
-};
+const charStr = str => str.split('').map(char);
 
 vows.describe('Regexp Tokenizer')
   .addBatch({
     'No special characters': {
       topic: ret('walnuts'),
 
-      'List of char tokens': (t) => {
+      'List of char tokens': t => {
         assert.deepEqual(t, {
           type: types.ROOT,
           stack: charStr('walnuts'),
         });
-      }
+      },
     },
 
 
-    'Positionals': {
+    Positionals: {
       '^ and $ in': {
         'one liner': {
           topic: ret('^yes$'),
-          'Positionals at beginning and end': (t) => {
+          'Positionals at beginning and end': t => {
             assert.deepEqual(t, {
               type: types.ROOT,
               stack: [
@@ -42,13 +38,13 @@ vows.describe('Regexp Tokenizer')
                 { type: types.POSITION, value: '$' },
               ],
             });
-          }
-        }
+          },
+        },
       },
 
       '\\b and \\B': {
         topic: ret('\\bbeginning\\B'),
-        'Word boundary at beginning': (t) => {
+        'Word boundary at beginning': t => {
           assert.deepEqual(t, {
             type: types.ROOT,
             stack: [
@@ -65,45 +61,45 @@ vows.describe('Regexp Tokenizer')
               { type: types.POSITION, value: 'B' },
             ],
           });
-        }
-      }
+        },
+      },
     },
 
 
     'Predefined sets': {
       topic: ret('\\w\\W\\d\\D\\s\\S.'),
 
-      'Words set': (t) => {
+      'Words set': t => {
         assert.isArray(t.stack);
         assert.deepEqual(t.stack[0], sets.words());
       },
 
-      'Non-Words set': (t) => {
+      'Non-Words set': t => {
         assert.isArray(t.stack);
         assert.deepEqual(t.stack[1], sets.notWords());
       },
 
-      'Integer set': (t) => {
+      'Integer set': t => {
         assert.isArray(t.stack);
         assert.deepEqual(t.stack[2], sets.ints());
       },
 
-      'Non-Integer set': (t) => {
+      'Non-Integer set': t => {
         assert.isArray(t.stack);
         assert.deepEqual(t.stack[3], sets.notInts());
       },
 
-      'Whitespace set': (t) => {
+      'Whitespace set': t => {
         assert.isArray(t.stack);
         assert.deepEqual(t.stack[4], sets.whitespace());
       },
 
-      'Non-Whitespace set': (t) => {
+      'Non-Whitespace set': t => {
         assert.isArray(t.stack);
         assert.deepEqual(t.stack[5], sets.notWhitespace());
       },
 
-      'Any character set': (t) => {
+      'Any character set': t => {
         assert.isArray(t.stack);
         assert.deepEqual(t.stack[6], sets.anyChar());
       },
@@ -111,9 +107,9 @@ vows.describe('Regexp Tokenizer')
 
 
     'Custom sets': {
-      'topic': ret('[$!a-z123] thing [^0-9]'),
+      topic: ret('[$!a-z123] thing [^0-9]'),
 
-      'Class contains all characters and range': (t) => {
+      'Class contains all characters and range': t => {
         assert.deepEqual(t, {
           type: types.ROOT,
           stack: [
@@ -147,16 +143,16 @@ vows.describe('Regexp Tokenizer')
                 to: '9'.charCodeAt(0),
               }],
               not: true,
-            }
+            },
           ],
         });
       },
       'Whitespace characters': {
-        'topic': ret('[\t\r\n\u2028\u2029 ]'),
+        topic: ret('[\t\r\n\u2028\u2029 ]'),
 
-        'Class contains some whitespace characters (not included in .)': (t) => {
-          const LINE_SEPARATOR = String.fromCharCode(8232) // \u2028
-          const PAGE_SEPARATOR = String.fromCharCode(8233) // \u2029
+        'Class contains some whitespace characters (not included in .)': t => {
+          const LINE_SEPARATOR = '\u2028';
+          const PAGE_SEPARATOR = '\u2029';
 
           assert.deepEqual(t, {
             type: types.ROOT,
@@ -169,19 +165,19 @@ vows.describe('Regexp Tokenizer')
                   char('\n'),
                   char(LINE_SEPARATOR),
                   char(PAGE_SEPARATOR),
-                  char(' ')
+                  char(' '),
                 ],
                 not: false,
               },
             ],
           });
-        }
-      }
+        },
+      },
     },
 
     'Two sets in a row with dash in between': {
-      'topic': ret('[01]-[ab]'),
-      'Contains both classes and no range': (t) => {
+      topic: ret('[01]-[ab]'),
+      'Contains both classes and no range': t => {
         assert.deepEqual(t, {
           type: types.ROOT,
           stack: [
@@ -193,17 +189,17 @@ vows.describe('Regexp Tokenizer')
             { type: types.SET,
               set: charStr('ab'),
               not: false,
-            }
+            },
           ],
         });
-      }
+      },
     },
 
 
     '| (Pipe)': {
       topic: ret('foo|bar|za'),
 
-      'Returns root object with options': (t) => {
+      'Returns root object with options': t => {
         assert.deepEqual(t, {
           type: types.ROOT,
           options: [
@@ -212,15 +208,15 @@ vows.describe('Regexp Tokenizer')
             charStr('za'),
           ],
         });
-      }
+      },
     },
 
 
-    'Group': {
+    Group: {
       'with no special characters': {
         topic: ret('hey (there)'),
 
-        'Token list contains group token': (t) => {
+        'Token list contains group token': t => {
           assert.deepEqual(t, {
             type: types.ROOT,
             stack: [
@@ -231,31 +227,31 @@ vows.describe('Regexp Tokenizer')
               { type: types.GROUP,
                 remember: true,
                 stack: charStr('there'),
-              }
+              },
             ],
           });
-        }
+        },
       },
 
       'that is not remembered': {
         topic: ret('(?:loner)'),
 
-        'Remember is false on the group object': (t) => {
+        'Remember is false on the group object': t => {
           assert.deepEqual(t, {
             type: types.ROOT,
             stack: [{
               type: types.GROUP,
               remember: false,
               stack: charStr('loner'),
-            }]
+            }],
           });
-        }
+        },
       },
 
       'matched previous clause if not followed by this': {
         topic: ret('what(?!ever)'),
 
-        'Returns a group': (t) => {
+        'Returns a group': t => {
           assert.deepEqual(t, {
             type: types.ROOT,
             stack: [
@@ -267,16 +263,16 @@ vows.describe('Regexp Tokenizer')
                 remember: false,
                 notFollowedBy: true,
                 stack: charStr('ever'),
-              }
+              },
             ],
           });
-        }
+        },
       },
 
       'matched next clause': {
         topic: ret('hello(?= there)'),
 
-        'Returns a group': (t) => {
+        'Returns a group': t => {
           assert.deepEqual(t, {
             type: types.ROOT,
             stack: [
@@ -289,16 +285,16 @@ vows.describe('Regexp Tokenizer')
                 remember: false,
                 followedBy: true,
                 stack: charStr(' there'),
-              }
+              },
             ],
           });
-        }
+        },
       },
 
       'with subgroup': {
         topic: ret('a(b(c|(?:d))fg) @_@'),
 
-        'Groups within groups': (t) => {
+        'Groups within groups': t => {
           assert.deepEqual(t, {
             type: types.ROOT,
             stack: [
@@ -313,7 +309,7 @@ vows.describe('Regexp Tokenizer')
                       [char('c')],
                       [{ type: types.GROUP,
                         remember: false,
-                        stack: charStr('d') }]
+                        stack: charStr('d') }],
                     ] },
                   char('f'),
                   char('g'),
@@ -325,8 +321,8 @@ vows.describe('Regexp Tokenizer')
               char('@'),
             ],
           });
-        }
-      }
+        },
+      },
     },
 
 
@@ -334,7 +330,7 @@ vows.describe('Regexp Tokenizer')
       'exact amount': {
         topic: ret('(?:pika){2}'),
 
-        'Min and max are the same': (t) => {
+        'Min and max are the same': t => {
           assert.deepEqual(t, {
             type: types.ROOT,
             stack: [
@@ -342,33 +338,33 @@ vows.describe('Regexp Tokenizer')
                 value: {
                   type: types.GROUP,
                   remember: false,
-                  stack: charStr('pika')
+                  stack: charStr('pika'),
                 },
-              }
+              },
             ],
           });
-        }
+        },
       },
 
       'minimum amount only': {
         topic: ret('NO{6,}'),
 
-        'To infinity': (t) => {
+        'To infinity': t => {
           assert.deepEqual(t, {
             type: types.ROOT,
             stack: [
               char('N'),
               { type: types.REPETITION, min: 6, max: Infinity,
-                value: char('O') }
+                value: char('O') },
             ],
           });
-        }
+        },
       },
 
       'both minimum and maximum': {
         topic: ret('pika\\.\\.\\. chu{3,20}!{1,2}'),
 
-        'Min and max differ and min < max': (t) => {
+        'Min and max differ and min < max': t => {
           assert.deepEqual(t, {
             type: types.ROOT,
             stack: charStr('pika... ch').concat([
@@ -376,19 +372,19 @@ vows.describe('Regexp Tokenizer')
               { type: types.REPETITION, min: 1, max: 2, value: char('!') },
             ]),
           });
-        }
+        },
       },
 
       'Brackets around a non-repetitional': {
         topic: ret('a{mustache}'),
 
-        'Returns a non-repetitional': (t) => {
+        'Returns a non-repetitional': t => {
           assert.deepEqual(t, {
             type: types.ROOT,
             stack: charStr('a{mustache}'),
           });
         },
-      }
+      },
     },
 
 
@@ -396,7 +392,7 @@ vows.describe('Regexp Tokenizer')
       '? (Optional)': {
         topic: ret('hey(?: you)?'),
 
-        'Get back correct min and max': (t) => {
+        'Get back correct min and max': t => {
           assert.deepEqual(t, {
             type: types.ROOT,
             stack: charStr('hey').concat([
@@ -404,17 +400,17 @@ vows.describe('Regexp Tokenizer')
                 value: {
                   type: types.GROUP, remember: false,
                   stack: charStr(' you'),
-                }
-              }
+                },
+              },
             ]),
           });
-        }
+        },
       },
 
       '+ (At least one)': {
         topic: ret('(no )+'),
 
-        'Correct min and max': (t) => {
+        'Correct min and max': t => {
           assert.deepEqual(t, {
             type: types.ROOT,
             stack: [{
@@ -422,34 +418,34 @@ vows.describe('Regexp Tokenizer')
               value: {
                 type: types.GROUP, remember: true,
                 stack: charStr('no '),
-              }
+              },
             }],
           });
-        }
+        },
       },
 
       '* (Any amount)': {
         topic: ret('XF*D'),
 
-        '0 to Infinity': (t) => {
+        '0 to Infinity': t => {
           assert.deepEqual(t, {
             type: types.ROOT,
             stack: [
               char('X'),
               { type: types.REPETITION, min: 0, max: Infinity,
-                value: char('F')},
+                value: char('F') },
               char('D'),
             ],
           });
-        }
-      }
+        },
+      },
     },
 
 
-    'Reference': {
+    Reference: {
       topic: ret('<(\\w+)>\\w*<\\1>'),
 
-      'Reference a group': (t) => {
+      'Reference a group': t => {
         assert.deepEqual(t, {
           type: types.ROOT,
           stack: [
@@ -457,7 +453,7 @@ vows.describe('Regexp Tokenizer')
             { type: types.GROUP, remember: true,
               stack: [{
                 type: types.REPETITION, min: 1, max: Infinity,
-                value: sets.words()}] },
+                value: sets.words() }] },
             char('>'),
             { type: types.REPETITION, min: 0, max: Infinity,
               value: sets.words() },
@@ -466,7 +462,215 @@ vows.describe('Regexp Tokenizer')
             char('>'),
           ],
         });
-      }
-    }
+      },
+    },
+
+    'Range (in set) test cases': {
+      'Testing complex range cases': {
+        'token.from is a hyphen and the range is preceded by a single character [a\\--\\-]': {
+          topic: ret('[a\\--\\-]'),
+          'Tokenizes correctly': t => {
+            assert.deepStrictEqual(t, {
+              type: types.ROOT, stack: [{
+                type: types.SET, not: false, set: [
+                  { type: types.CHAR, value: 97 },
+                  { type: types.RANGE, from: 45, to: 45 },
+                ],
+              }],
+            });
+          },
+        },
+        'token.from is a hyphen and the range is preceded by a single character [a\\--\\/]': {
+          topic: ret('[a\\--\\/]'),
+          'Tokenizes correctly': t => {
+            assert.deepStrictEqual(t, {
+              type: types.ROOT, stack: [{
+                type: types.SET, not: false, set: [
+                  { type: types.CHAR, value: 97 },
+                  { type: types.RANGE, from: 45, to: 47 },
+                ],
+              }],
+            });
+          },
+        },
+        'token.from is a hyphen and the range is preceded by a single character [c\\--a]': {
+          topic: ret('[c\\--a]'),
+          'Tokenizes correctly': t => {
+            assert.deepStrictEqual(t, {
+              type: types.ROOT, stack: [{
+                type: types.SET, not: false, set: [
+                  { type: types.CHAR, value: 99 },
+                  { type: types.RANGE, from: 45, to: 97 },
+                ],
+              }],
+            });
+          },
+        },
+        'token.from is a hyphen and the range is preceded by a single character [\\-\\--\\-]': {
+          topic: ret('[\\-\\--\\-]'),
+          'Tokenizes correctly': t => {
+            assert.deepStrictEqual(t, {
+              type: types.ROOT, stack: [{
+                type: types.SET, not: false, set: [
+                  { type: types.CHAR, value: 45 },
+                  { type: types.RANGE, from: 45, to: 45 },
+                ],
+              }],
+            });
+          },
+        },
+        'token.from is a hyphen and the range is preceded by a predefined set [\\w\\--\\-]': {
+          topic: ret('[\\w\\--\\-]'),
+          'Tokenizes correctly': t => {
+            assert.deepStrictEqual(t, {
+              type: types.ROOT, stack: [{
+                type: types.SET, not: false, set: [
+                  {
+                    type: types.SET, not: false, set: [
+                      { type: types.CHAR, value: 95 },
+                      { type: types.RANGE, from: 97, to: 122 },
+                      { type: types.RANGE, from: 65, to: 90 },
+                      { type: types.RANGE, from: 48, to: 57 },
+                    ],
+                  },
+                  { type: types.RANGE, from: 45, to: 45 },
+                ],
+              }],
+            });
+          },
+        },
+        'token.from is a caret and the range is the first item of the set [9-\\^]': {
+          topic: ret('[9-\\^]'),
+          'Tokenizes correctly': t => {
+            assert.deepStrictEqual(t, {
+              type: types.ROOT, stack: [{
+                type: types.SET, not: false, set: [
+                  { type: types.RANGE, from: 57, to: 94 },
+                ],
+              }],
+            });
+          },
+        },
+        'token.to is a closing square bracket [2-\\]]': {
+          topic: ret('[2-\\]]'),
+          'Tokenizes correctly': t => {
+            assert.deepStrictEqual(t, {
+              type: types.ROOT, stack: [{
+                type: types.SET, not: false, set: [
+                  { type: types.RANGE, from: 50, to: 93 },
+                ],
+              }],
+            });
+          },
+        },
+        'token.to is a closing square bracket [\\]-\\^]': {
+          topic: ret('[\\]-\\^]'),
+          'Tokenizes correctly': t => {
+            assert.deepStrictEqual(t, {
+              type: types.ROOT, stack: [{
+                type: types.SET, not: false, set: [
+                  { type: types.RANGE, from: 93, to: 94 },
+                ],
+              }],
+            });
+          },
+        },
+        'token.to is a closing square bracket [[-\\]]': {
+          topic: ret('[[-\\]]'),
+          'Tokenizes correctly': t => {
+            assert.deepStrictEqual(t, {
+              type: types.ROOT, stack: [{
+                type: types.SET, not: false, set: [
+                  { type: types.RANGE, from: 91, to: 93 },
+                ],
+              }],
+            });
+          },
+        },
+        'token.to is a closing square bracket [[-]]': {
+          topic: ret('[[-]]'),
+          'Tokenizes correctly': t => {
+            assert.deepStrictEqual(t, {
+              type: types.ROOT, stack: [{
+                type: types.SET, not: false, set: [
+                  { type: types.CHAR, value: 91 },
+                  { type: types.CHAR, value: 45 },
+                ],
+              }, {
+                type: types.CHAR, value: 93,
+              }],
+            });
+          },
+        },
+        'token.from is a caret [\\^-_]': {
+          topic: ret('[\\^-_]'),
+          'Tokenizes correctly': t => {
+            assert.deepStrictEqual(t, {
+              type: types.ROOT, stack: [{
+                type: types.SET, not: false, set: [
+                  { type: types.RANGE, from: 94, to: 95 },
+                ],
+              }],
+            });
+          },
+        },
+        'token.from is a caret [\\^-^]': {
+          topic: ret('[\\^-^]'),
+          'Tokenizes correctly': t => {
+            assert.deepStrictEqual(t, {
+              type: types.ROOT, stack: [{
+                type: types.SET, not: false, set: [
+                  { type: types.RANGE, from: 94, to: 94 },
+                ],
+              }],
+            });
+          },
+        },
+        'token.from is a caret and set is negated [^\\^-_]': {
+          topic: ret('[^\\^-_]'),
+          'Tokenizes correctly': t => {
+            assert.deepStrictEqual(t, {
+              type: types.ROOT, stack: [{
+                type: types.SET, not: true, set: [
+                  { type: types.RANGE, from: 94, to: 95 },
+                ],
+              }],
+            });
+          },
+        },
+        'token.from is a caret [\\^-^] and set is negated': {
+          topic: ret('[^\\^-^]'),
+          'Tokenizes correctly': t => {
+            assert.deepStrictEqual(t, {
+              type: types.ROOT, stack: [{
+                type: types.SET, not: true, set: [
+                  { type: types.RANGE, from: 94, to: 94 },
+                ],
+              }],
+            });
+          },
+        },
+        'Contains emtpy set': {
+          topic: ret('[]'),
+          'Tokenizes correctly': t => {
+            assert.deepStrictEqual(t, {
+              type: types.ROOT, stack: [{
+                type: types.SET, not: false, set: [],
+              }],
+            });
+          },
+        },
+        'Contains emtpy negated set': {
+          topic: ret('[^]'),
+          'Tokenizes correctly': t => {
+            assert.deepStrictEqual(t, {
+              type: types.ROOT, stack: [{
+                type: types.SET, not: true, set: [],
+              }],
+            });
+          },
+        },
+      },
+    },
   })
   .export(module);

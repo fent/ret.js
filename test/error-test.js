@@ -1,14 +1,16 @@
-const vows   = require('vows');
+const vows = require('vows');
 const assert = require('assert');
-const ret    = require('../dist');
+const ret = require('../dist');
 
 
 /**
  * @param {string} regexp
+ * @returns {!Error}
  */
-const topicMacro = (regexp) => {
+const topicMacro = regexp => {
   try {
     ret(regexp);
+    return null;
   } catch (err) {
     return err;
   }
@@ -18,11 +20,11 @@ const topicMacro = (regexp) => {
 /**
  * @param {string} regexp
  * @param {string} message
- * @return {Function(Error)}
+ * @returns {Function}
  */
 const errMacro = (regexp, message) => {
-  message = 'Invalid regular expression: /' + regexp + '/: ' + message;
-  return (err) => {
+  message = `Invalid regular expression: /${regexp}/: ${message}`;
+  return err => {
     assert.isObject(err);
     assert.include(err, 'message');
     assert.equal(err.message, message);
@@ -34,7 +36,7 @@ const errMacro = (regexp, message) => {
  * @param {string} regexp
  * @param {string} name
  * @param {string} message
- * @return {Object}
+ * @returns {Object}
  */
 const macro = (regexp, name, message) => {
   let obj = { topic: topicMacro(regexp) };
@@ -46,13 +48,13 @@ const macro = (regexp, name, message) => {
 vows.describe('Regexp Tokenizer Errors')
   .addBatch({
     'Bad repetiion at beginning of': {
-      'regexp': macro('?what', 'Nothing to repeat',
+      regexp: macro('?what', 'Nothing to repeat',
         'Nothing to repeat at column 0'),
 
-      'group': macro('foo(*\\w)', 'Nothing to repeat',
+      group: macro('foo(*\\w)', 'Nothing to repeat',
         'Nothing to repeat at column 4'),
 
-      'pipe': macro('foo|+bar', 'Nothing to repeat',
+      pipe: macro('foo|+bar', 'Nothing to repeat',
         'Nothing to repeat at column 4'),
 
       'with custom repetitional': macro('ok({3}no)', 'Nothing to repeat',
@@ -60,9 +62,9 @@ vows.describe('Regexp Tokenizer Errors')
     },
 
     'Bad grouping': {
-      'unmatched': macro('hey(yoo))', 'Unmatched )',
+      unmatched: macro('hey(yoo))', 'Unmatched )',
         'Unmatched ) at column 8'),
-      'unclosed': macro('(', 'Unterminated group',
+      unclosed: macro('(', 'Unterminated group',
         'Unterminated group'),
     },
 

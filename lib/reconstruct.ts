@@ -8,7 +8,7 @@ const simplifications: [sets.SetFunc, string][] = [
   [sets.notInts, '\\D'],
   [sets.whitespace, '\\s'],
   [sets.notWhitespace, '\\S'],
-  [sets.anyChar, '.']
+  [sets.anyChar, '.'],
 ];
 
 const reduceStack = (stack: Token[]): string => stack.map(reconstruct).join('');
@@ -27,17 +27,18 @@ export const reconstruct = (token: Tokens): string => {
   switch (token.type) {
     case types.ROOT:
       return createAlternate(token);
-    case types.CHAR:
+    case types.CHAR: {
       const c = String.fromCharCode(token.value);
-      return (/[[\]^.\/|?*+()]/.test(c) ? '\\' : '') + c;
+      return (/[[\]^./|?*+()]/.test(c) ? '\\' : '') + c;
+    }
     case types.POSITION:
       if (token.value === '^' || token.value === '$') {
         return token.value;
       } else {
-        return '\\' + token.value;
+        return `\\${token.value}`;
       }
     case types.REFERENCE:
-      return '\\' + token.value;
+      return `\\${token.value}`;
     case types.SET:
       for (const [set, simplification] of simplifications) {
         if (JSON.stringify(set()) === JSON.stringify(token)) {
@@ -50,10 +51,10 @@ export const reconstruct = (token: Tokens): string => {
     case types.GROUP:
       // Check token.remember
       return `(${token.remember ? '' : '?'}${token.followedBy ? '=' :
-          token.notFollowedBy ? '!' :
-            (token.remember ? '' : ':')
-        }${createAlternate(token)})`
-    case types.REPETITION:
+        token.notFollowedBy ? '!' :
+          token.remember ? '' : ':'
+      }${createAlternate(token)})`;
+    case types.REPETITION: {
       const { min, max } = token;
       let endWith;
       if (min === 0 && max === 1) {
@@ -63,10 +64,11 @@ export const reconstruct = (token: Tokens): string => {
       } else if (min === 0 && max === Infinity) {
         endWith = '*';
       } else {
-        endWith = max === Infinity ? `{${min},}`
-          : `{${min}${min === max ? `` : `,${max}`}}`;
+        endWith = max === Infinity ? `{${min},}` :
+          `{${min}${min === max ? `` : `,${max}`}}`;
       }
       return `${reconstruct(token.value)}${endWith}`;
+    }
     default:
       throw new Error(`Invalid token type ${token}`);
   }

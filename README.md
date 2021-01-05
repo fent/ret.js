@@ -35,7 +35,6 @@ The `reconstruct` function accepts a *any* token and returns, as a string, the *
 
 ```ts
 import { reconstruct, types } from 'ret'
-
 const tokens = ret(/foo|bar/.source)
 const setToken = {
     "type": types.SET,
@@ -46,7 +45,6 @@ const setToken = {
     ],
     "not": true
   }
-
 reconstruct(tokens)                               // 'foo|bar'
 reconstruct({ "type": types.CHAR, "value": 102 }) // 'f'
 reconstruct(setToken)                             // '^abc'
@@ -262,7 +260,7 @@ The following latest JavaScript additions are not supported yet:
 `/\w/`
 
 ```js
-// Similar logic for `\W`, `\d`, `\D`, `\s` and `\S`  
+// Similar logic for `\W`, `\d`, `\D`, `\s` and `\S`    
 {
   "type": ret.types.ROOT,
   "stack": [{

@@ -111,6 +111,250 @@ vows.describe('Regexp Reconstruction')
           '[^_a-zA-Z0-9]',
           '[^0-9]',
         ]),
+        // Testing for https://github.com/fent/ret.js/pull/25#discussion_r533492862
+        'Range (in set) test cases': {
+          'Testing complex range cases': {
+            'token.from is a hyphen and the range is preceded by a single character [a\\--\\-]': {
+              topic: {
+                type: types.SET, not: false, set: [
+                  { type: types.CHAR, value: 97 },
+                  { type: types.RANGE, from: 45, to: 45 },
+                ],
+              },
+              'Reconstructs correctly': set => {
+                assert.deepStrictEqual(reconstruct(set), '[a\\--\\-]');
+              },
+            },
+            'token.from is a hyphen and the range is preceded by a single character [a\\--\\/]': {
+              topic: {
+                type: types.SET, not: false, set: [
+                  { type: types.CHAR, value: 97 },
+                  { type: types.RANGE, from: 45, to: 47 },
+                ],
+              },
+              'Reconstructs correctly': set => {
+                assert.deepStrictEqual(reconstruct(set), '[a\\--\\/]');
+              },
+            },
+            'token.from is a hyphen and the range is preceded by a single character [c\\--a]': {
+              topic: {
+                type: types.SET, not: false, set: [
+                  { type: types.CHAR, value: 99 },
+                  { type: types.RANGE, from: 45, to: 97 },
+                ],
+              },
+              'Reconstructs correctly': set => {
+                assert.deepStrictEqual(reconstruct(set), '[c\\--a]');
+              },
+            },
+            'token.from is a hyphen and the range is preceded by a single character [\\-\\--\\-]': {
+              topic: {
+                type: types.SET, not: false, set: [
+                  { type: types.CHAR, value: 45 },
+                  { type: types.RANGE, from: 45, to: 45 },
+                ],
+              },
+              'Reconstructs correctly': set => {
+                assert.deepStrictEqual(reconstruct(set), '[\\-\\--\\-]');
+              },
+            },
+            'token.from is a hyphen and the range is preceded by a predefined set [\\w\\--\\-]': {
+              topic: {
+                type: types.SET, not: false, set: [
+                  {
+                    type: types.SET, not: false, set: [
+                      { type: types.CHAR, value: 95 },
+                      { type: types.RANGE, from: 97, to: 122 },
+                      { type: types.RANGE, from: 65, to: 90 },
+                      { type: types.RANGE, from: 48, to: 57 },
+                    ],
+                  },
+                  { type: types.RANGE, from: 45, to: 45 },
+                ],
+              },
+              'Reconstructs correctly': set => {
+                assert.deepStrictEqual(reconstruct(set), '[\\w\\--\\-]');
+              },
+            },
+            'token.from is a caret and the range is the first item of the set [9-^]': {
+              topic: {
+                type: types.SET, not: false, set: [
+                  { type: types.RANGE, from: 57, to: 94 },
+                ],
+              },
+              'Reconstructs correctly': set => {
+                assert.deepStrictEqual(reconstruct(set), '[9-^]');
+              },
+            },
+            'token.to is a closing square bracket [2-\\]]': {
+              topic: {
+                type: types.SET, not: false, set: [
+                  { type: types.RANGE, from: 50, to: 93 },
+                ],
+              },
+              'Reconstructs correctly': set => {
+                assert.deepStrictEqual(reconstruct(set), '[2-\\]]');
+              },
+            },
+            'token.to is a closing square bracket [\\-^]]': {
+              topic: {
+                type: types.SET, not: false, set: [
+                  { type: types.RANGE, from: 93, to: 94 },
+                ],
+              },
+              'Reconstructs correctly': set => {
+                assert.deepStrictEqual(reconstruct(set), '[\\-^]]');
+              },
+            },
+            'token.to is a closing square bracket [[-\\]]': {
+              topic: {
+                type: types.SET, not: false, set: [
+                  { type: types.RANGE, from: 92, to: 93 },
+                ],
+              },
+              'Reconstructs correctly': set => {
+                assert.deepStrictEqual(reconstruct(set), '[[-\\]]');
+              },
+            },
+            'token.to is a closing square bracket [[-]]': {
+              topic: {
+                type: types.ROOT, stack: [{
+                  type: types.SET, not: false, set: [
+                    { type: types.CHAR, value: 91 },
+                    { type: types.CHAR, value: 45 },
+                  ],
+                }, {
+                  type: types.CHAR, value: 93,
+                }],
+              },
+              'Tokenizes correctly': set => {
+                assert.deepStrictEqual(reconstruct(set), '[[-]]');
+              },
+            },
+            'token.from is a caret [\\^-_]': {
+              topic: {
+                type: types.ROOT, stack: [{
+                  type: types.SET, not: false, set: [
+                    { type: types.RANGE, from: 94, to: 95 },
+                  ],
+                }],
+              },
+              'Tokenizes correctly': set => {
+                assert.deepStrictEqual(reconstruct(set), '[\\^-_]');
+              },
+            },
+            'token.from is a caret [\\^-^]': {
+              topic: {
+                type: types.ROOT, stack: [{
+                  type: types.SET, not: false, set: [
+                    { type: types.RANGE, from: 94, to: 94 },
+                  ],
+                }],
+              },
+              'Tokenizes correctly': set => {
+                assert.deepStrictEqual(reconstruct(set), '[\\^-^]');
+              },
+            },
+            'token.from is a caret and set is negated [^^-_]': {
+              topic: {
+                type: types.ROOT, stack: [{
+                  type: types.SET, not: true, set: [
+                    { type: types.RANGE, from: 94, to: 95 },
+                  ],
+                }],
+              },
+              'Tokenizes correctly': set => {
+                assert.deepStrictEqual(reconstruct(set), '[^^-_]');
+              },
+            },
+            'token.from is a caret [^^-^] and set is negated': {
+              topic: {
+                type: types.ROOT, stack: [{
+                  type: types.SET, not: true, set: [
+                    { type: types.RANGE, from: 94, to: 94 },
+                  ],
+                }],
+              },
+              'Tokenizes correctly': set => {
+                assert.deepStrictEqual(reconstruct(set), '[^^-^]');
+              },
+            },
+            'Contains emtpy set': {
+              topic: {
+                type: types.SET, not: false, set: [],
+              },
+              'Reconstructs correctly': set => {
+                assert.deepStrictEqual(reconstruct(set), '[]');
+              },
+            },
+            'Contains emtpy negated set': {
+              topic: {
+                type: types.SET, not: true, set: [],
+              },
+              'Reconstructs correctly': set => {
+                assert.deepStrictEqual(reconstruct(set), '[^]');
+              },
+            },
+            'Contains emtpy nested set': {
+              topic: {
+                type: types.SET, not: false, set: [{
+                  type: types.SET, not: false, set: [],
+                }],
+              },
+              'Reconstructs correctly': set => {
+                assert.deepStrictEqual(reconstruct(set), '[]');
+              },
+            },
+            'Contains emtpy nested set negated': {
+              topic: {
+                type: types.SET, not: true, set: [{
+                  type: types.SET, not: false, set: [],
+                }],
+              },
+              'Reconstructs correctly': set => {
+                assert.deepStrictEqual(reconstruct(set), '[^]');
+              },
+            },
+            'Contains emtpy nested set and single char [a]': {
+              topic: {
+                type: types.SET, not: false, set: [
+                  { type: types.SET, not: false, set: [] },
+                  { type: types.CHAR, value: 97 },
+                ],
+              },
+              'Reconstructs correctly': set => {
+                assert.deepStrictEqual(reconstruct(set), '[a]');
+              },
+            },
+            'Contains emtpy nested set (on right side) and single char [a]': {
+              topic: {
+                type: types.SET, not: false, set: [
+                  { type: types.CHAR, value: 97 },
+                  { type: types.SET, not: false, set: [] },
+                ],
+              },
+              'Reconstructs correctly': set => {
+                assert.deepStrictEqual(reconstruct(set), '[a]');
+              },
+            },
+          },
+          'Testing inverse relations': multiInverseTestFactory([
+            '[a\\--\\-]',
+            '[a\\--\\/]',
+            '[c\\--a]',
+            '[\\-\\--\\-]',
+            '[\\w\\--\\-]',
+            '[9-^]',
+            '[09\\--\\-]',
+            '[2-\\]]',
+            '[\\^-\\]]',
+            '[\\^^-\\]]',
+            '[^^-\\]]',
+            '[\\[-\\]]',
+            '[[-\\]]',
+            '[[-]]'
+          ]),
+        },
         'Set simplification tests': {
           INTS: {
             topic: [{ type: types.RANGE, from: 48, to: 57 }],

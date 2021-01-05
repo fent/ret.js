@@ -1,15 +1,5 @@
 import { types, Root, Token, Tokens, Group } from './types';
-import * as sets from './sets';
-
-const simplifications: [sets.SetFunc, string][] = [
-  [sets.words, '\\w'],
-  [sets.notWords, '\\W'],
-  [sets.ints, '\\d'],
-  [sets.notInts, '\\D'],
-  [sets.whitespace, '\\s'],
-  [sets.notWhitespace, '\\S'],
-  [sets.anyChar, '.'],
-];
+import { writeSetTokens, setChar } from './write-set-tokens';
 
 const reduceStack = (stack: Token[]): string => stack.map(reconstruct).join('');
 
@@ -29,7 +19,9 @@ export const reconstruct = (token: Tokens): string => {
       return createAlternate(token);
     case types.CHAR: {
       const c = String.fromCharCode(token.value);
-      return (/[[\]^./|?*+()]/.test(c) ? '\\' : '') + c;
+      // Note that the escaping for characters inside classes is handled
+      // in the write-set-tokens module so '-' and ']' are not escaped here
+      return (/[[{}$^.|?*+()]/.test(c) ? '\\' : '') + c;
     }
     case types.POSITION:
       if (token.value === '^' || token.value === '$') {
@@ -40,20 +32,18 @@ export const reconstruct = (token: Tokens): string => {
     case types.REFERENCE:
       return `\\${token.value}`;
     case types.SET:
-      for (const [set, simplification] of simplifications) {
-        if (JSON.stringify(set()) === JSON.stringify(token)) {
-          return simplification;
-        }
-      }
-      return `[${token.not ? '^' : ''}${reduceStack(token.set)}]`;
-    case types.RANGE:
-      return `${String.fromCharCode(token.from)}-${String.fromCharCode(token.to)}`;
-    case types.GROUP:
+      // We only need to negate first internal '^' if token.not is false
+      // This is why the second arguement is !token.not
+      return writeSetTokens(token, !token.not);
+    case types.GROUP: {
       // Check token.remember
-      return `(${token.remember ? '' : '?'}${token.followedBy ? '=' :
-        token.notFollowedBy ? '!' :
-          token.remember ? '' : ':'
-      }${createAlternate(token)})`;
+      const prefix =
+        token.remember ? '' :
+          token.followedBy ? '?=' :
+            token.notFollowedBy ? '?!' :
+              '?:';
+      return `(${prefix}${createAlternate(token)})`;
+    }
     case types.REPETITION: {
       const { min, max } = token;
       let endWith;
@@ -63,12 +53,17 @@ export const reconstruct = (token: Tokens): string => {
         endWith = '+';
       } else if (min === 0 && max === Infinity) {
         endWith = '*';
+      } else if (max === Infinity) {
+        endWith = `{${min},}`;
+      } else if (min === max) {
+        endWith = `{${min}}`;
       } else {
-        endWith = max === Infinity ? `{${min},}` :
-          `{${min}${min === max ? `` : `,${max}`}}`;
+        endWith = `{${min},${max}}`;
       }
       return `${reconstruct(token.value)}${endWith}`;
     }
+    case types.RANGE:
+      return `${setChar(token.from, true, false)}-${setChar(token.to, false, true)}`;
     default:
       throw new Error(`Invalid token type ${token}`);
   }

@@ -1,22 +1,35 @@
 const vows = require('vows');
 const assert = require('assert');
 const ret = require('../dist');
-const { tokenToString } = require('typescript');
 const reconstruct = require('../dist/reconstruct').reconstruct;
 const types = require('../dist/types').types;
 
-const inverseTestFactory = regexp => ({
+const inverseTestFactory = (regexp, expected) => ({
   topic: ret(regexp),
 
   [`Checking ${regexp} reconstructs`]: t => {
+    // Make sure there are no invalid test cases
+    if ('stack' in t) {
+      for (const elem of t.stack) {
+        const badRange = elem.type === types.SET &&
+        elem.set.some(token => token.type === types.RANGE && token.to < token.from);
+
+        assert.deepStrictEqual(badRange, false);
+      }
+    }
+
     // May need to do some sort of sanitisation here
     const reconstructed = reconstruct(t);
     assert.isString(reconstructed);
-    assert.deepStrictEqual(reconstructed, regexp.replace(/\[\^0-9\]/g, '\\D')
-      .replace(/\[0-9\]/g, '\\d')
-      .replace(/\[\^_a-zA-Z0-9\]/g, '\\W')
-      .replace(/\[_a-zA-Z0-9\]/g, '\\w'),
-    );
+    if (expected) {
+      assert.deepStrictEqual(reconstructed, expected);
+    } else {
+      assert.deepStrictEqual(reconstructed, regexp.replace(/\[\^0-9\]/g, '\\D')
+        .replace(/\[0-9\]/g, '\\d')
+        .replace(/\[\^_a-zA-Z0-9\]/g, '\\W')
+        .replace(/\[_a-zA-Z0-9\]/g, '\\w'),
+      );
+    }
   },
 });
 
@@ -41,7 +54,7 @@ vows.describe('Regexp Reconstruction')
       '.',
       ',',
       'word',
-      '\\/\\/',
+      '//',
       '\\W',
       '\\D',
       '\\w\\W\\d\\D\\s\\S.',
@@ -53,10 +66,31 @@ vows.describe('Regexp Reconstruction')
       '.^',
       '$,',
       '$word^',
-      '$\\/\\/^',
+      '$//^',
       '$\\W^',
       '$\\D^',
       '$\\w\\W\\d\\D\\s\\S.^',
+    ]),
+    'testing handleing of escaped special characters': multiInverseTestFactory([
+      '\\$',
+      '\\^',
+      '\\[',
+      '^\\^',
+      '\\.',
+      '\\|',
+      '\\?',
+      '\\(',
+      '\\)',
+      '\\{',
+      '\\}',
+      '\\$\\^\\[]\\.|',
+      '$\\^\\[]\\.\\|',
+      '\\$^\\[]\\.\\|',
+      '\\$\\^\\[]\\.\\|',
+      '\\$\\^[]\\.\\|',
+      '\\$\\^[]\\.\\|',
+      '\\$\\^\\[].\\|',
+      '\\$\\^\\[]\\.|',
     ]),
     'all main regexp expressions': {
       'No special characters': inverseTestFactory('walnuts'),
@@ -65,7 +99,7 @@ vows.describe('Regexp Reconstruction')
       'Predefined sets': inverseTestFactory('\\w\\W\\d\\D\\s\\S.'),
       'Custom Sets': multiInverseTestFactory([
         '[$!a-z123] thing [^0-9]',
-        '[^\\.]',
+        '[^.]',
         '[^test]',
       ]),
       'Whitespace characters': inverseTestFactory('[\t\r\n\u2028\u2029 ]'),
@@ -86,7 +120,7 @@ vows.describe('Regexp Reconstruction')
         'exact amount': inverseTestFactory('(?:pika){2}'),
         'minimum amount only': inverseTestFactory('NO{6,}'),
         'both minimum and maximum': inverseTestFactory('pika\\.\\.\\. chu{3,20}!{1,2}'),
-        'Brackets around a non-repetitional': inverseTestFactory('a{mustache}'),
+        'Brackets around a non-repetitional': inverseTestFactory('a{mustache}', 'a\\{mustache\\}'),
         'Predefined repetitional': {
           '? (Optional)': inverseTestFactory('hey(?: you)?'),
           '+ (At least one)': inverseTestFactory('(no )+'),
@@ -114,7 +148,7 @@ vows.describe('Regexp Reconstruction')
         // Testing for https://github.com/fent/ret.js/pull/25#discussion_r533492862
         'Range (in set) test cases': {
           'Testing complex range cases': {
-            'token.from is a hyphen and the range is preceded by a single character [a\\--\\-]': {
+            'token.from is a hyphen and the range is preceded by a single character [a\\---]': {
               topic: {
                 type: types.SET, not: false, set: [
                   { type: types.CHAR, value: 97 },
@@ -122,10 +156,10 @@ vows.describe('Regexp Reconstruction')
                 ],
               },
               'Reconstructs correctly': set => {
-                assert.deepStrictEqual(reconstruct(set), '[a\\--\\-]');
+                assert.deepStrictEqual(reconstruct(set), '[a\\---]');
               },
             },
-            'token.from is a hyphen and the range is preceded by a single character [a\\--\\/]': {
+            'token.from is a hyphen and the range is preceded by a single character [a\\--/]': {
               topic: {
                 type: types.SET, not: false, set: [
                   { type: types.CHAR, value: 97 },
@@ -133,7 +167,7 @@ vows.describe('Regexp Reconstruction')
                 ],
               },
               'Reconstructs correctly': set => {
-                assert.deepStrictEqual(reconstruct(set), '[a\\--\\/]');
+                assert.deepStrictEqual(reconstruct(set), '[a\\--/]');
               },
             },
             'token.from is a hyphen and the range is preceded by a single character [c\\--a]': {
@@ -147,7 +181,7 @@ vows.describe('Regexp Reconstruction')
                 assert.deepStrictEqual(reconstruct(set), '[c\\--a]');
               },
             },
-            'token.from is a hyphen and the range is preceded by a single character [\\-\\--\\-]': {
+            'token.from is a hyphen and the range is preceded by a single character [\\-\\---]': {
               topic: {
                 type: types.SET, not: false, set: [
                   { type: types.CHAR, value: 45 },
@@ -155,10 +189,10 @@ vows.describe('Regexp Reconstruction')
                 ],
               },
               'Reconstructs correctly': set => {
-                assert.deepStrictEqual(reconstruct(set), '[\\-\\--\\-]');
+                assert.deepStrictEqual(reconstruct(set), '[\\-\\---]');
               },
             },
-            'token.from is a hyphen and the range is preceded by a predefined set [\\w\\--\\-]': {
+            'token.from is a hyphen and the range is preceded by a predefined set [\\w\\---]': {
               topic: {
                 type: types.SET, not: false, set: [
                   {
@@ -173,7 +207,7 @@ vows.describe('Regexp Reconstruction')
                 ],
               },
               'Reconstructs correctly': set => {
-                assert.deepStrictEqual(reconstruct(set), '[\\w\\--\\-]');
+                assert.deepStrictEqual(reconstruct(set), '[\\w\\---]');
               },
             },
             'token.from is a caret and the range is the first item of the set [9-^]': {
@@ -196,20 +230,20 @@ vows.describe('Regexp Reconstruction')
                 assert.deepStrictEqual(reconstruct(set), '[2-\\]]');
               },
             },
-            'token.to is a closing square bracket [\\-^]]': {
+            'token.from is a closing square bracket [\\]-^]': {
               topic: {
                 type: types.SET, not: false, set: [
                   { type: types.RANGE, from: 93, to: 94 },
                 ],
               },
               'Reconstructs correctly': set => {
-                assert.deepStrictEqual(reconstruct(set), '[\\-^]]');
+                assert.deepStrictEqual(reconstruct(set), '[\\]-^]');
               },
             },
             'token.to is a closing square bracket [[-\\]]': {
               topic: {
                 type: types.SET, not: false, set: [
-                  { type: types.RANGE, from: 92, to: 93 },
+                  { type: types.RANGE, from: 91, to: 93 },
                 ],
               },
               'Reconstructs correctly': set => {
@@ -227,7 +261,7 @@ vows.describe('Regexp Reconstruction')
                   type: types.CHAR, value: 93,
                 }],
               },
-              'Tokenizes correctly': set => {
+              'Reconstructs correctly': set => {
                 assert.deepStrictEqual(reconstruct(set), '[[-]]');
               },
             },
@@ -239,7 +273,7 @@ vows.describe('Regexp Reconstruction')
                   ],
                 }],
               },
-              'Tokenizes correctly': set => {
+              'Reconstructs correctly': set => {
                 assert.deepStrictEqual(reconstruct(set), '[\\^-_]');
               },
             },
@@ -251,7 +285,7 @@ vows.describe('Regexp Reconstruction')
                   ],
                 }],
               },
-              'Tokenizes correctly': set => {
+              'Reconstructs correctly': set => {
                 assert.deepStrictEqual(reconstruct(set), '[\\^-^]');
               },
             },
@@ -263,7 +297,7 @@ vows.describe('Regexp Reconstruction')
                   ],
                 }],
               },
-              'Tokenizes correctly': set => {
+              'Reconstructs correctly': set => {
                 assert.deepStrictEqual(reconstruct(set), '[^^-_]');
               },
             },
@@ -275,7 +309,7 @@ vows.describe('Regexp Reconstruction')
                   ],
                 }],
               },
-              'Tokenizes correctly': set => {
+              'Reconstructs correctly': set => {
                 assert.deepStrictEqual(reconstruct(set), '[^^-^]');
               },
             },
@@ -339,21 +373,93 @@ vows.describe('Regexp Reconstruction')
             },
           },
           'Testing inverse relations': multiInverseTestFactory([
-            '[a\\--\\-]',
-            '[a\\--\\/]',
+            '[a\\---]',
+            '[a\\--/]',
             '[c\\--a]',
-            '[\\-\\--\\-]',
-            '[\\w\\--\\-]',
+            '[\\-\\---]',
+            '[\\w\\---]',
             '[9-^]',
-            '[09\\--\\-]',
+            '[09\\---]',
             '[2-\\]]',
-            '[\\^-\\]]',
-            '[\\^^-\\]]',
-            '[^^-\\]]',
-            '[\\[-\\]]',
+            '[\\]-^]',
+            '[\\^\\]-^]',
+            '[^\\]-^]',
+            '[^^-^]',
             '[[-\\]]',
-            '[[-]]'
+            '[[-]]',
+            '\\d',
+            '\\D',
+            '[\\\\-\\\\]',
           ]),
+          'Testing inverse relations with repitions': multiInverseTestFactory([
+            '[a\\---]{3}',
+            '[a\\--/]{5}\\}',
+            '[c\\--a]{2}',
+            '[\\-\\---]\\{\\}',
+            '[\\w\\---]{1}',
+            '[9-^]+',
+            '[09\\---]*',
+            '[2-\\]]?',
+            '[\\]-^]\\+',
+            '[\\^\\]-^]\\*',
+            '[^\\]-^]\\?',
+            '[^^-^]\\{0\\}',
+            '[[-\\]]{0,9}',
+            '[[-]]\\{0,9\\}',
+            '\\d?',
+            '\\D?',
+            '[\\\\-\\\\]?',
+          ]),
+          'Similar to predefined sets': {
+            'Similar to ints': {
+              topic: [{ type: types.RANGE, from: 48, to: 56 }],
+              'Set similar to simplification works': set => {
+                assert.deepStrictEqual(reconstruct({ type: types.SET, set, not: false }), '[0-8]');
+              },
+              'Set similar to simplification works (nested)': set => {
+                assert.deepStrictEqual(reconstruct({
+                  type: types.SET,
+                  set: [{ type: types.SET, set, not: false }],
+                  not: false,
+                }),
+                '[0-8]');
+              },
+              'Negative set similar to simplification works': set => {
+                assert.deepStrictEqual(reconstruct({ type: types.SET, set, not: true }), '[^0-8]');
+              },
+            },
+            'Similar to words': {
+              WORDS: {
+                topic: [
+                  { type: types.CHAR, value: 95 },
+                  { type: types.RANGE, from: 97, to: 122 },
+                  { type: types.RANGE, from: 48, to: 57 },
+                ],
+                'Set simplification works': set => {
+                  assert.deepStrictEqual(reconstruct({ type: types.SET, set, not: false }), '[_a-z\\d]');
+                },
+                'Negative set simplification works': set => {
+                  assert.deepStrictEqual(reconstruct({ type: types.SET, set, not: true }), '[^_a-z\\d]');
+                },
+              },
+            },
+            'Similar to words with nesed set': {
+              WORDS: {
+                topic: [
+                  { type: types.CHAR, value: 95 },
+                  { type: types.RANGE, from: 97, to: 122 },
+                  { type: types.SET, not: false, set: [] },
+                  { type: types.RANGE, from: 48, to: 57 },
+                ],
+                'Set simplification works': set => {
+                  assert.deepStrictEqual(reconstruct({ type: types.SET, set, not: false }), '[_a-z\\d]');
+                },
+                'Negative set simplification works': set => {
+                  assert.deepStrictEqual(reconstruct({ type: types.SET, set, not: true }), '[^_a-z\\d]');
+                },
+              },
+            },
+          },
         },
         'Set simplification tests': {
           INTS: {
@@ -441,6 +547,18 @@ vows.describe('Regexp Reconstruction')
         'throws error emessage': err => {
           assert.isObject(err);
           assert.include(err.message, 'Invalid token type');
+        },
+      },
+      'Reconsutructs individual range tokens outisde of set 0-8': {
+        topic: reconstruct({ type: types.RANGE, from: 48, to: 56 }),
+        'Outputs range correctly': res => {
+          assert.deepStrictEqual(res, '0-8');
+        },
+      },
+      'Reconsutructs individual range tokens outisde of set 0-\\]': {
+        topic: reconstruct({ type: types.RANGE, from: 48, to: 93 }),
+        'Outputs range correctly': res => {
+          assert.deepStrictEqual(res, '0-\\]');
         },
       },
     },

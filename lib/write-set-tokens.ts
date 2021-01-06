@@ -47,18 +47,14 @@ function isSameSet(set: SetTokens, map: Record<string | number, boolean>): boole
  */
 export function writeSetTokens(set: Set, isFirstChar: boolean, isNested = false): string {
   const len = set.set.length;
-  if (len === 1) {
-    // Ints case
-    const [token] = set.set;
-    if (token.type === types.RANGE && token.from === 48 && token.to === 57) {
-      return set.not ? '\\D' : '\\d';
-    }
+  if (len === 1 && isSameSet(set.set, sets.INTS())) {
+    return set.not ? '\\D' : '\\d';
   } else if (len === 4) {
     if (isSameSet(set.set, sets.WORDS())) {
       return set.not ? '\\W' : '\\w';
     }
     // Notanychar is only relevant when not nested inside another set token
-    if (!isNested && set.not && isSameSet(set.set, sets.NOTANYCHAR())) {
+    if (set.not && isSameSet(set.set, sets.NOTANYCHAR())) {
       return '.';
     }
   } else if (len === 15 && isSameSet(set.set, sets.WHITESPACE())) {

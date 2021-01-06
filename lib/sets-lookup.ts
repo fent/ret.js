@@ -1,3 +1,7 @@
+export const INTS = (): Record<string | number, boolean> => ({
+  '48-57': true,
+});
+
 export const WORDS = (): Record<string | number, boolean> => ({
   95: true,
   '97-122': true,

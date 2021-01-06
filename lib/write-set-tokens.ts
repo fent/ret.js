@@ -88,11 +88,7 @@ function writeSetToken(set: Range | Char | Set, isFirstChar: boolean, isLastChar
   if (set.type === types.CHAR) {
     return setChar(set.value, isFirstChar, isLastChar);
   } else if (set.type === types.RANGE) {
-    if (set.from === 48 && set.to === 57) {
-      return '\\d';
-    } else {
-      return `${setChar(set.from, isFirstChar)}-${setChar(set.to, false, true)}`;
-    }
+    return `${setChar(set.from, isFirstChar)}-${setChar(set.to, false, true)}`;
   }
   return writeSetTokens(set, isFirstChar, true);
 }

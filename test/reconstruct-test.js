@@ -4,6 +4,28 @@ const ret = require('../dist');
 const reconstruct = require('../dist/reconstruct').reconstruct;
 const types = require('../dist/types').types;
 
+const similarToWhitespaceSet = [
+  { type: types.CHAR, value: 9 },
+  { type: types.CHAR, value: 10 },
+  { type: types.CHAR, value: 11 },
+  { type: types.CHAR, value: 12 },
+  { type: types.CHAR, value: 13 },
+  { type: types.CHAR, value: 32 },
+  { type: types.CHAR, value: 160 },
+  { type: types.CHAR, value: 5760 },
+  { type: types.RANGE, from: 8192, to: 8200 },
+  { type: types.CHAR, value: 8232 },
+  { type: types.CHAR, value: 8233 },
+  { type: types.CHAR, value: 8239 },
+  { type: types.CHAR, value: 8287 },
+  { type: types.CHAR, value: 12288 },
+  { type: types.CHAR, value: 65279 },
+].map(code => {
+  return code.type === types.CHAR ? 
+  String.fromCharCode(code.value) : 
+  String.fromCharCode(code.from) + '-' + String.fromCharCode(code.to);
+}).join('')
+
 const inverseTestFactory = (regexp, expected) => ({
   topic: ret(regexp),
 
@@ -457,6 +479,31 @@ vows.describe('Regexp Reconstruction')
                 'Negative set simplification works': set => {
                   assert.deepStrictEqual(reconstruct({ type: types.SET, set, not: true }), '[^_a-z\\d]');
                 },
+              },
+            },
+            'Similar to whitespace': {
+              topic: [
+                { type: types.CHAR, value: 9 },
+                { type: types.CHAR, value: 10 },
+                { type: types.CHAR, value: 11 },
+                { type: types.CHAR, value: 12 },
+                { type: types.CHAR, value: 13 },
+                { type: types.CHAR, value: 32 },
+                { type: types.CHAR, value: 160 },
+                { type: types.CHAR, value: 5760 },
+                { type: types.RANGE, from: 8192, to: 8200 },
+                { type: types.CHAR, value: 8232 },
+                { type: types.CHAR, value: 8233 },
+                { type: types.CHAR, value: 8239 },
+                { type: types.CHAR, value: 8287 },
+                { type: types.CHAR, value: 12288 },
+                { type: types.CHAR, value: 65279 },
+              ],
+              'Set simplification works': set => {
+                assert.deepStrictEqual(reconstruct({ type: types.SET, set, not: false }), `[${similarToWhitespaceSet}]`);
+              },
+              'Negative set simplification works': set => {
+                assert.deepStrictEqual(reconstruct({ type: types.SET, set, not: true }), `[^${similarToWhitespaceSet}]`);
               },
             },
           },

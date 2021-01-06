@@ -61,7 +61,7 @@ export function writeSetTokens(set: Set, isFirstChar: boolean, isNested = false)
     if (!isNested && set.not && isSameSet(set.set, sets.NOTANYCHAR())) {
       return '.';
     }
-  } else if (len === 15 && sets.WHITESPACE()) {
+  } else if (len === 15 && isSameSet(set.set, sets.WHITESPACE())) {
     return set.not ? '\\S' : '\\s';
   }
   let isFirstCharTemp = isFirstChar;

@@ -21,7 +21,7 @@ export const reconstruct = (token: Tokens): string => {
       const c = String.fromCharCode(token.value);
       // Note that the escaping for characters inside classes is handled
       // in the write-set-tokens module so '-' and ']' are not escaped here
-      return (/[[{}$^.|?*+()]/.test(c) ? '\\' : '') + c;
+      return (/[[\\{}$^.|?*+()]/.test(c) ? '\\' : '') + c;
     }
     case types.POSITION:
       if (token.value === '^' || token.value === '$') {

@@ -103,6 +103,7 @@ vows.describe('Regexp Reconstruction')
       '\\)',
       '\\{',
       '\\}',
+      '\\\\',
       '\\$\\^\\[]\\.|',
       '$\\^\\[]\\.\\|',
       '\\$^\\[]\\.\\|',
@@ -111,6 +112,9 @@ vows.describe('Regexp Reconstruction')
       '\\$\\^[]\\.\\|',
       '\\$\\^\\[].\\|',
       '\\$\\^\\[]\\.|',
+      '\\$\\^\\[]\\.|\\\\',
+      '\\$\\^\\[]\\.\\\\|',
+      '\\\\\\$\\^\\[]\\.|',
     ]),
     'all main regexp expressions': {
       'No special characters': inverseTestFactory('walnuts'),

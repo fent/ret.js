@@ -180,7 +180,7 @@ vows.describe('Regexp Reconstruction')
                 ],
               },
               'Reconstructs correctly': set => {
-                assert.deepStrictEqual(reconstruct(set), '[a\\---]');
+                assert.deepStrictEqual(reconstruct(set), '[a\\--\\-]');
               },
             },
             'token.from is a hyphen and the range is preceded by a single character [a\\--/]': {
@@ -213,7 +213,7 @@ vows.describe('Regexp Reconstruction')
                 ],
               },
               'Reconstructs correctly': set => {
-                assert.deepStrictEqual(reconstruct(set), '[\\-\\---]');
+                assert.deepStrictEqual(reconstruct(set), '[\\-\\--\\-]');
               },
             },
             'token.from is a hyphen and the range is preceded by a predefined set [\\w\\---]': {
@@ -231,7 +231,7 @@ vows.describe('Regexp Reconstruction')
                 ],
               },
               'Reconstructs correctly': set => {
-                assert.deepStrictEqual(reconstruct(set), '[\\w\\---]');
+                assert.deepStrictEqual(reconstruct(set), '[\\w\\--\\-]');
               },
             },
             'token.from is a caret and the range is the first item of the set [9-^]': {
@@ -241,7 +241,7 @@ vows.describe('Regexp Reconstruction')
                 ],
               },
               'Reconstructs correctly': set => {
-                assert.deepStrictEqual(reconstruct(set), '[9-^]');
+                assert.deepStrictEqual(reconstruct(set), '[9-\\^]');
               },
             },
             'token.to is a closing square bracket [2-\\]]': {
@@ -261,7 +261,7 @@ vows.describe('Regexp Reconstruction')
                 ],
               },
               'Reconstructs correctly': set => {
-                assert.deepStrictEqual(reconstruct(set), '[\\]-^]');
+                assert.deepStrictEqual(reconstruct(set), '[\\]-\\^]');
               },
             },
             'token.to is a closing square bracket [[-\\]]': {
@@ -286,7 +286,7 @@ vows.describe('Regexp Reconstruction')
                 }],
               },
               'Reconstructs correctly': set => {
-                assert.deepStrictEqual(reconstruct(set), '[[-]]');
+                assert.deepStrictEqual(reconstruct(set), '[[\\-]]');
               },
             },
             'token.from is a caret [\\^-_]': {
@@ -310,7 +310,7 @@ vows.describe('Regexp Reconstruction')
                 }],
               },
               'Reconstructs correctly': set => {
-                assert.deepStrictEqual(reconstruct(set), '[\\^-^]');
+                assert.deepStrictEqual(reconstruct(set), '[\\^-\\^]');
               },
             },
             'token.from is a caret and set is negated [^^-_]': {
@@ -322,7 +322,7 @@ vows.describe('Regexp Reconstruction')
                 }],
               },
               'Reconstructs correctly': set => {
-                assert.deepStrictEqual(reconstruct(set), '[^^-_]');
+                assert.deepStrictEqual(reconstruct(set), '[^\\^-_]');
               },
             },
             'token.from is a caret [^^-^] and set is negated': {
@@ -334,7 +334,7 @@ vows.describe('Regexp Reconstruction')
                 }],
               },
               'Reconstructs correctly': set => {
-                assert.deepStrictEqual(reconstruct(set), '[^^-^]');
+                assert.deepStrictEqual(reconstruct(set), '[^\\^-\\^]');
               },
             },
             'Contains emtpy set': {
@@ -397,39 +397,39 @@ vows.describe('Regexp Reconstruction')
             },
           },
           'Testing inverse relations': multiInverseTestFactory([
-            '[a\\---]',
+            '[a\\--\\-]',
             '[a\\--/]',
             '[c\\--a]',
-            '[\\-\\---]',
-            '[\\w\\---]',
-            '[9-^]',
-            '[09\\---]',
+            '[\\-\\--\\-]',
+            '[\\w\\--\\-]',
+            '[9-\\^]',
+            '[09\\--\\-]',
             '[2-\\]]',
-            '[\\]-^]',
-            '[\\^\\]-^]',
-            '[^\\]-^]',
-            '[^^-^]',
+            '[\\]-\\^]',
+            '[\\^\\]-\\^]',
+            '[^\\]-\\^]',
+            '[^\\^-\\^]',
             '[[-\\]]',
-            '[[-]]',
+            '[[\\-]]',
             '\\d',
             '\\D',
             '[\\\\-\\\\]',
           ]),
           'Testing inverse relations with repitions': multiInverseTestFactory([
-            '[a\\---]{3}',
+            '[a\\--\\-]{3}',
             '[a\\--/]{5}\\}',
             '[c\\--a]{2}',
-            '[\\-\\---]\\{\\}',
-            '[\\w\\---]{1}',
-            '[9-^]+',
-            '[09\\---]*',
+            '[\\-\\--\\-]\\{\\}',
+            '[\\w\\--\\-]{1}',
+            '[9-\\^]+',
+            '[09\\--\\-]*',
             '[2-\\]]?',
-            '[\\]-^]\\+',
-            '[\\^\\]-^]\\*',
-            '[^\\]-^]\\?',
-            '[^^-^]\\{0\\}',
+            '[\\]-\\^]\\+',
+            '[\\^\\]-\\^]\\*',
+            '[^\\]-\\^]\\?',
+            '[^\\^-\\^]\\{0\\}',
             '[[-\\]]{0,9}',
-            '[[-]]\\{0,9\\}',
+            '[[\\-]]\\{0,9\\}',
             '\\d?',
             '\\D?',
             '[\\\\-\\\\]?',

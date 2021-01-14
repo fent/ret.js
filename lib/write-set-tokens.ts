@@ -8,12 +8,12 @@ import * as sets from './sets-lookup';
  * @param {boolean} isLastChar True if character is the last character of the set
  * @returns {string} The string for the sets character
  */
-export function setChar(charCode: number, isFirstChar: boolean, isLastChar = false): string {
+export function setChar(charCode: number): string {
   // We only need to negate first internal '^' if token.not is false
-  return isFirstChar && charCode === 94 ? '\\^' :
+  return charCode === 94 ? '\\^' :
     charCode === 92 ? '\\\\' :
       charCode === 93 ? '\\]' :
-        charCode === 45 && !isLastChar ? '\\-' :
+        charCode === 45 ? '\\-' :
           String.fromCharCode(charCode);
 }
 
@@ -64,7 +64,7 @@ export function writeSetTokens(set: Set, isFirstChar: boolean, isNested = false)
   let tokenString = '';
   for (let i = 0; i < len; i++) {
     const subset = set.set[i];
-    tokenString += writeSetToken(subset, isFirstCharTemp, i === len - 1);
+    tokenString += writeSetToken(subset, isFirstCharTemp);
     // Only cancel out firstChar condition when we reach first non empty
     // set in the sequence
     isFirstCharTemp = isFirstCharTemp && subset.type === types.SET && subset.set.length === 0;
@@ -80,11 +80,11 @@ export function writeSetTokens(set: Set, isFirstChar: boolean, isNested = false)
  * @param {boolean} isLastChar True if character is the last character of the set
  * @returns {string} The token as a string
  */
-function writeSetToken(set: Range | Char | Set, isFirstChar: boolean, isLastChar: boolean): string {
+function writeSetToken(set: Range | Char | Set, isFirstChar: boolean): string {
   if (set.type === types.CHAR) {
-    return setChar(set.value, isFirstChar, isLastChar);
+    return setChar(set.value);
   } else if (set.type === types.RANGE) {
-    return `${setChar(set.from, isFirstChar)}-${setChar(set.to, false, true)}`;
+    return `${setChar(set.from)}-${setChar(set.to)}`;
   }
   return writeSetTokens(set, isFirstChar, true);
 }

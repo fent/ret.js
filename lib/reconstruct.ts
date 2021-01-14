@@ -63,7 +63,7 @@ export const reconstruct = (token: Tokens): string => {
       return `${reconstruct(token.value)}${endWith}`;
     }
     case types.RANGE:
-      return `${setChar(token.from, true, false)}-${setChar(token.to, false, true)}`;
+      return `${setChar(token.from)}-${setChar(token.to)}`;
     default:
       throw new Error(`Invalid token type ${token}`);
   }

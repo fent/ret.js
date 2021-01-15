@@ -39,11 +39,10 @@ function isSameSet(set: SetTokens, map: Record<string | number, boolean>): boole
 /**
  * Writes the tokens for a set
  * @param {Set} set The set to display
- * @param {boolean} isFirstChar Whether subset contains the first character of the set
  * @param {boolean} isNested Whether the token is nested inside another set token
  * @returns {string} The tokens for the set
  */
-export function writeSetTokens(set: Set, isFirstChar: boolean, isNested = false): string {
+export function writeSetTokens(set: Set, isNested = false): string {
   const len = set.set.length;
   if (len === 1 && isSameSet(set.set, sets.INTS())) {
     return set.not ? '\\D' : '\\d';
@@ -58,14 +57,10 @@ export function writeSetTokens(set: Set, isFirstChar: boolean, isNested = false)
   } else if (len === 15 && isSameSet(set.set, sets.WHITESPACE())) {
     return set.not ? '\\S' : '\\s';
   }
-  let isFirstCharTemp = isFirstChar;
   let tokenString = '';
   for (let i = 0; i < len; i++) {
     const subset = set.set[i];
-    tokenString += writeSetToken(subset, isFirstCharTemp);
-    // Only cancel out firstChar condition when we reach first non empty
-    // set in the sequence
-    isFirstCharTemp = isFirstCharTemp && subset.type === types.SET && subset.set.length === 0;
+    tokenString += writeSetToken(subset);
   }
   const contents = `${set.not ? '^' : ''}${tokenString}`;
   return isNested ? contents : `[${contents}]`;
@@ -74,15 +69,13 @@ export function writeSetTokens(set: Set, isFirstChar: boolean, isNested = false)
 /**
  * Writes a token within a set
  * @param {Range | Char | Set} set The set token to display
- * @param {boolean} isFirstChar Whether subset contains the first character of the set
- * @param {boolean} isLastChar True if character is the last character of the set
  * @returns {string} The token as a string
  */
-function writeSetToken(set: Range | Char | Set, isFirstChar: boolean): string {
+function writeSetToken(set: Range | Char | Set): string {
   if (set.type === types.CHAR) {
     return setChar(set.value);
   } else if (set.type === types.RANGE) {
     return `${setChar(set.from)}-${setChar(set.to)}`;
   }
-  return writeSetTokens(set, isFirstChar, true);
+  return writeSetTokens(set, true);
 }

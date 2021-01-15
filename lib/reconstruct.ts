@@ -32,9 +32,7 @@ export const reconstruct = (token: Tokens): string => {
     case types.REFERENCE:
       return `\\${token.value}`;
     case types.SET:
-      // We only need to negate first internal '^' if token.not is false
-      // This is why the second arguement is !token.not
-      return writeSetTokens(token, !token.not);
+      return writeSetTokens(token);
     case types.GROUP: {
       // Check token.remember
       const prefix =

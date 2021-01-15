@@ -4,8 +4,6 @@ import * as sets from './sets-lookup';
 /**
  * Takes character code and returns character to be displayed in a set
  * @param {number} charCode Character code of set element
- * @param {boolean} isFirstChar True if character is the first character of the set
- * @param {boolean} isLastChar True if character is the last character of the set
  * @returns {string} The string for the sets character
  */
 export function setChar(charCode: number): string {

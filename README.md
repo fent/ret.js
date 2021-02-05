@@ -31,7 +31,7 @@ let tokens = ret(/foo|bar/.source);
 
 # Reconstructing Regular Expressions from Tokens
 
-The `reconstruct` function accepts a *any* token and returns, as a string, the *component* of the regular expression that is associated with that token.
+The `reconstruct` function accepts an *any* token and returns, as a string, the *component* of the regular expression that is associated with that token.
 
 ```ts
 import { reconstruct, types } from 'ret'

@@ -10,7 +10,11 @@ const setLookupPath = path.join(__dirname, '..', 'lib', 'sets-lookup.ts');
 const returnType = 'Record<string | number, boolean>';
 
 // Cleans up by removing the existing set lookup file
-fs.unlinkSync(setLookupPath);
+try {
+  fs.unlinkSync(setLookupPath);
+// eslint-disable-next-line no-empty
+} catch (e) {}
+
 
 const config = {
   INTS: Sets.ints().set,

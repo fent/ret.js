@@ -7,7 +7,6 @@ import * as sets from './sets-lookup';
  * @returns {string} The string for the sets character
  */
 export function setChar(charCode: number): string {
-  // We only need to negate first internal '^' if token.not is false
   return charCode === 94 ? '\\^' :
     charCode === 92 ? '\\\\' :
       charCode === 93 ? '\\]' :

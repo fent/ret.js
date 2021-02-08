@@ -1,35 +1,30 @@
-export const INTS = (): Record<string | number, boolean> => ({
-  '48-57': true,
-});
+import * as Sets from './sets';
+import { SetTokens, types } from './types';
 
-export const WORDS = (): Record<string | number, boolean> => ({
-  95: true,
-  '97-122': true,
-  '65-90': true,
-  '48-57': true,
-});
+function setToLookup(tokens: SetTokens) {
+  let lookup: Record<string | number, boolean> = {};
+  let len = 0;
+  for (const token of tokens) {
+    if (token.type === types.CHAR) {
+      lookup[token.value] = true;
+    }
+    // Note this is in an if statement because
+    // the SetTokens type is (Char | Range | Set)[]
+    // so a type error is thrown if it is not.
+    // If the SetTokens type is modified the if statement
+    // can be removed
+    if (token.type === types.RANGE) {
+      lookup[`${token.from}-${token.to}`] = true;
+    }
+    len += 1;
+  }
+  return {
+    lookup: () => ({ ...lookup }),
+    len,
+  };
+}
 
-export const WHITESPACE = (): Record<string | number, boolean> => ({
-  9: true,
-  10: true,
-  11: true,
-  12: true,
-  13: true,
-  32: true,
-  160: true,
-  5760: true,
-  '8192-8202': true,
-  8232: true,
-  8233: true,
-  8239: true,
-  8287: true,
-  12288: true,
-  65279: true,
-});
-
-export const NOTANYCHAR = (): Record<string | number, boolean> => ({
-  10: true,
-  13: true,
-  8232: true,
-  8233: true,
-});
+export const INTS = setToLookup(Sets.ints().set);
+export const WORDS = setToLookup(Sets.words().set);
+export const WHITESPACE = setToLookup(Sets.whitespace().set);
+export const NOTANYCHAR = setToLookup(Sets.anyChar().set);

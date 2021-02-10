@@ -20,11 +20,10 @@
   ],
   "scripts": {
     "test": "nyc --extension .ts --reporter=lcov --reporter=text-summary vows -- --spec test/*-test.js",
-    "build:sets": "ts-node bin/generate-set-lookup && eslint lib/sets-lookup.ts --fix",
-    "build": "npm run build:sets && tsc",
-    "prepare": "npm run build",
-    "lint": "eslint ./lib ./bin ./test",
-    "lint:fix": "eslint --fix ./lib ./bin ./test"
+    "build": "tsc",
+    "prepare": "tsc",
+    "lint": "eslint ./lib ./test",
+    "lint:fix": "eslint --fix ./lib ./test"
   },
   "devDependencies": {
     "@types/node": "^14.11.8",
@@ -32,13 +31,12 @@
     "@typescript-eslint/parser": "^4.11.1",
     "eslint": "^7.16.0",
     "nyc": "^14.1.1",
-    "ts-morph": "^9.1.0",
-    "ts-node": "^9.1.1",
     "typescript": "^4.0.3",
     "vows": "^0.8.3"
   },
   "engines": {
     "node": ">=10"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {}
 }

@@ -1,5 +1,6 @@
 import { types, Set, Range, Char, SetTokens } from './types';
 import * as sets from './sets-lookup';
+import { SetLookup } from './types/set-lookup';
 
 /**
  * Takes character code and returns character to be displayed in a set
@@ -17,10 +18,16 @@ export function setChar(charCode: number): string {
 /**
  * Test if a character set matches a 'set-lookup'
  * @param {SetTokens} set The set to be tested
- * @param {Record<string | number, boolean>} map The predefined 'set-lookup'
+ * @param {SetLookup} param The predefined 'set-lookup' & the number of elements in the lookup
  * @returns {boolean} True if the character set corresponds to the 'set-lookup'
  */
-function isSameSet(set: SetTokens, map: Record<string | number, boolean>): boolean {
+function isSameSet(set: SetTokens, { lookup, len }: SetLookup): boolean {
+  // If the set and the lookup are not of the same length
+  // then we immediately know that the lookup will be false
+  if (len !== set.length) {
+    return false;
+  }
+  const map = lookup();
   for (const elem of set) {
     if (elem.type === types.SET) {
       return false;
@@ -42,22 +49,21 @@ function isSameSet(set: SetTokens, map: Record<string | number, boolean>): boole
  * @returns {string} The tokens for the set
  */
 export function writeSetTokens(set: Set, isNested = false): string {
-  const len = set.set.length;
-  if (len === 1 && isSameSet(set.set, sets.INTS())) {
+  if (isSameSet(set.set, sets.INTS)) {
     return set.not ? '\\D' : '\\d';
-  } else if (len === 4) {
-    if (isSameSet(set.set, sets.WORDS())) {
-      return set.not ? '\\W' : '\\w';
-    }
-    // Notanychar is only relevant when not nested inside another set token
-    if (set.not && isSameSet(set.set, sets.NOTANYCHAR())) {
-      return '.';
-    }
-  } else if (len === 15 && isSameSet(set.set, sets.WHITESPACE())) {
+  }
+  if (isSameSet(set.set, sets.WORDS)) {
+    return set.not ? '\\W' : '\\w';
+  }
+  // Notanychar is only relevant when not nested inside another set token
+  if (set.not && isSameSet(set.set, sets.NOTANYCHAR)) {
+    return '.';
+  }
+  if (isSameSet(set.set, sets.WHITESPACE)) {
     return set.not ? '\\S' : '\\s';
   }
   let tokenString = '';
-  for (let i = 0; i < len; i++) {
+  for (let i = 0; i < set.set.length; i++) {
     const subset = set.set[i];
     tokenString += writeSetToken(subset);
   }

@@ -29,6 +29,27 @@ let tokens = ret(/foo|bar/.source);
 }
 ```
 
+# Reconstructing Regular Expressions from Tokens
+
+The `reconstruct` function accepts an *any* token and returns, as a string, the *component* of the regular expression that is associated with that token.
+
+```ts
+import { reconstruct, types } from 'ret'
+const tokens = ret(/foo|bar/.source)
+const setToken = {
+    "type": types.SET,
+    "set": [
+      { "type": types.CHAR, "value": 97 },
+      { "type": types.CHAR, "value": 98 },
+      { "type": types.CHAR, "value": 99 }
+    ],
+    "not": true
+  }
+reconstruct(tokens)                               // 'foo|bar'
+reconstruct({ "type": types.CHAR, "value": 102 }) // 'f'
+reconstruct(setToken)                             // '^abc'
+```
+
 # Token Types
 
 `ret.types` is a collection of the various token types exported by ret.

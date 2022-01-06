@@ -320,13 +320,13 @@ vows.describe('Regexp Tokenizer')
                       [{
                         type: types.GROUP,
                         remember: false,
-                        stack: charStr('d')
+                        stack: charStr('d'),
                       }],
-                    ]
+                    ],
                   },
                   char('f'),
                   char('g'),
-                ]
+                ],
               },
 
               char(' '),
@@ -371,7 +371,7 @@ vows.describe('Regexp Tokenizer')
               char('N'),
               {
                 type: types.REPETITION, min: 6, max: Infinity,
-                value: char('O')
+                value: char('O'),
               },
             ],
           });
@@ -452,7 +452,7 @@ vows.describe('Regexp Tokenizer')
               char('X'),
               {
                 type: types.REPETITION, min: 0, max: Infinity,
-                value: char('F')
+                value: char('F'),
               },
               char('D'),
             ],
@@ -474,13 +474,13 @@ vows.describe('Regexp Tokenizer')
               type: types.GROUP, remember: true,
               stack: [{
                 type: types.REPETITION, min: 1, max: Infinity,
-                value: sets.words()
-              }]
+                value: sets.words(),
+              }],
             },
             char('>'),
             {
               type: types.REPETITION, min: 0, max: Infinity,
-              value: sets.words()
+              value: sets.words(),
             },
             char('<'),
             { type: types.REFERENCE, value: 1 },
@@ -502,13 +502,13 @@ vows.describe('Regexp Tokenizer')
               type: types.GROUP, remember: true,
               stack: [{
                 type: types.REPETITION, min: 1, max: Infinity,
-                value: sets.words()
-              }]
+                value: sets.words(),
+              }],
             },
             char('>'),
             {
               type: types.REPETITION, min: 0, max: Infinity,
-              value: sets.words()
+              value: sets.words(),
             },
             char('<'),
             { type: types.CHAR, value: 10 },
@@ -546,7 +546,35 @@ vows.describe('Regexp Tokenizer')
       },
     },
 
-    'NOT Reference with more than one digit': {
+    'Reference with more than one digit, capturing group after reference': {
+      topic: ret('(a)(b)(c)(d)(e)(f)(g)(h)(i) - \\10(j)'),
+
+      'Reference with more than one digit': t => {
+        assert.deepEqual(t,
+          {
+            type: 0,
+            stack:
+              [
+                { type: types.GROUP, stack: [char('a')], remember: true },
+                { type: types.GROUP, stack: [char('b')], remember: true },
+                { type: types.GROUP, stack: [char('c')], remember: true },
+                { type: types.GROUP, stack: [char('d')], remember: true },
+                { type: types.GROUP, stack: [char('e')], remember: true },
+                { type: types.GROUP, stack: [char('f')], remember: true },
+                { type: types.GROUP, stack: [char('g')], remember: true },
+                { type: types.GROUP, stack: [char('h')], remember: true },
+                { type: types.GROUP, stack: [char('i')], remember: true },
+                char(' '),
+                char('-'),
+                char(' '),
+                { type: types.REFERENCE, value: 10 },
+                { type: types.GROUP, stack: [char('j')], remember: true },
+              ],
+          });
+      },
+    },
+
+    'NOT Reference with more than one digit (a)(b)(c)(d)(e)(f)(g)(h)(i) - \\10': {
       topic: ret('(a)(b)(c)(d)(e)(f)(g)(h)(i) - \\10'),
 
       'Reference with more than one digit': t => {

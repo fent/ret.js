@@ -1,5 +1,5 @@
 import * as util from './util';
-import { Group, types, Root, Token } from './types';
+import { Group, types, tempTypes, Root, Token } from './types';
 import * as sets from './sets';
 
 /**
@@ -10,12 +10,11 @@ import * as sets from './sets';
  */
 export const tokenizer = (regexpStr: string): Root => {
   let i = 0, c: string;
-  let groups = 0;
   let start: Root = { type: types.ROOT, stack: [] };
 
   // Keep track of last clause/group and stack.
   let lastGroup: Group | Root = start;
-  let last: Token[] = start.stack;
+  let last: (Token | { type: tempTypes.REFERENCE_OR_CHAR, value: number })[] = start.stack;
   let groupStack: (Group | Root)[] = [];
 
   const repeatErr = (col: number) => {
@@ -72,12 +71,13 @@ export const tokenizer = (regexpStr: string): Root => {
             if (/\d/.test(c)) {
               let digits = c;
 
+              // eslint-disable-next-line max-depth
               while (/\d/.test(str[i])) {
                 digits += str[i++];
               }
 
               let value = parseInt(digits, 10);
-              last.push({ type: value <= groups ? types.REFERENCE : types.CHAR, value });
+              last.push({ type: tempTypes.REFERENCE_OR_CHAR, value });
 
               // Escaped character.
             } else {
@@ -133,7 +133,6 @@ export const tokenizer = (regexpStr: string): Root => {
       // Push group onto stack.
       case '(': {
         // Create group.
-        groups += 1;
 
         let group: Group = {
           type: types.GROUP,

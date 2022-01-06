@@ -21,14 +21,14 @@ export const strToChars = (str: string): string => {
     let code: number = b ? 8 :
       a16 ? parseInt(a16, 16) :
         b16 ? parseInt(b16, 16) :
-            dctrl ? CTRL.indexOf(dctrl) : {
-              0: 0,
-              t: 9,
-              n: 10,
-              v: 11,
-              f: 12,
-              r: 13,
-            }[eslsh];
+          dctrl ? CTRL.indexOf(dctrl) : {
+            0: 0,
+            t: 9,
+            n: 10,
+            v: 11,
+            f: 12,
+            r: 13,
+          }[eslsh];
 
     let c = String.fromCharCode(code);
 

@@ -10,6 +10,7 @@ import * as sets from './sets';
  */
 export const tokenizer = (regexpStr: string): Root => {
   let i = 0, c: string;
+  let groups = 0;
   let start: Root = { type: types.ROOT, stack: [] };
 
   // Keep track of last clause/group and stack.
@@ -19,8 +20,7 @@ export const tokenizer = (regexpStr: string): Root => {
 
   const repeatErr = (col: number) => {
     throw new SyntaxError(
-      `Invalid regular expression: /${
-        regexpStr
+      `Invalid regular expression: /${regexpStr
       }/: Nothing to repeat at column ${col - 1}`,
     );
   };
@@ -70,12 +70,16 @@ export const tokenizer = (regexpStr: string): Root => {
             // Check if c is integer.
             // In which case it's a reference.
             if (/\d/.test(c)) {
-              while(/\d/.test(str[i])) {
-                c += str[i++];
-              }
-              last.push({ type: types.REFERENCE, value: parseInt(c, 10) });
+              let digits = c;
 
-            // Escaped character.
+              while (/\d/.test(str[i])) {
+                digits += str[i++];
+              }
+
+              let value = parseInt(digits, 10);
+              last.push({ type: value <= groups ? types.REFERENCE : types.CHAR, value });
+
+              // Escaped character.
             } else {
               last.push({ type: types.CHAR, value: c.charCodeAt(0) });
             }
@@ -129,6 +133,8 @@ export const tokenizer = (regexpStr: string): Root => {
       // Push group onto stack.
       case '(': {
         // Create group.
+        groups += 1;
+
         let group: Group = {
           type: types.GROUP,
           stack: [],
@@ -144,13 +150,12 @@ export const tokenizer = (regexpStr: string): Root => {
           if (c === '=') {
             group.followedBy = true;
 
-          // Match if not followed by.
+            // Match if not followed by.
           } else if (c === '!') {
             group.notFollowedBy = true;
           } else if (c !== ':') {
             throw new SyntaxError(
-              `Invalid regular expression: /${
-                regexpStr
+              `Invalid regular expression: /${regexpStr
               }/: Invalid group, character '${c}'` +
               ` after '?' at column ${i - 1}`,
             );
@@ -177,8 +182,7 @@ export const tokenizer = (regexpStr: string): Root => {
       case ')':
         if (groupStack.length === 0) {
           throw new SyntaxError(
-            `Invalid regular expression: /${
-              regexpStr
+            `Invalid regular expression: /${regexpStr
             }/: Unmatched ) at column ${i - 1}`,
           );
         }
@@ -292,8 +296,7 @@ export const tokenizer = (regexpStr: string): Root => {
   // Check if any groups have not been closed.
   if (groupStack.length !== 0) {
     throw new SyntaxError(
-      `Invalid regular expression: /${
-        regexpStr
+      `Invalid regular expression: /${regexpStr
       }/: Unterminated group`,
     );
   }

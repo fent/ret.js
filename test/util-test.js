@@ -9,11 +9,11 @@ vows.describe('strToChars')
   .addBatch({
     'Convert escaped chars in str to their unescaped versions': {
       topic: () => util.strToChars(
-        '\\v \\xFF hellow \\u00A3 \\50 there \\cB \\n \\w [\\b]'),
+        '\\v \\xFF hellow \\u00A3 \\50 \\u0028 there \\cB \\n \\w [\\b]'),
 
       'Returned string has converted characters': str => {
         assert.equal(str,
-          '\v \xFF hellow \u00A3 \\50 there  \n \\w \u0008');
+          '\v \xFF hellow \u00A3 \\50 \\( there  \n \\w \u0008');
       },
     },
     'Escaped chars in regex source remain espaced': {

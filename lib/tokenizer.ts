@@ -1,5 +1,5 @@
 import * as util from './util';
-import { Group, types, tempTypes, Root, Token } from './types';
+import { Group, types, Root, Token, Reference, Char } from './types';
 import * as sets from './sets';
 
 /**
@@ -14,8 +14,10 @@ export const tokenizer = (regexpStr: string): Root => {
 
   // Keep track of last clause/group and stack.
   let lastGroup: Group | Root = start;
-  let last: (Token | { type: tempTypes.REFERENCE_OR_CHAR, value: number })[] = start.stack;
+  let last: Token[] = start.stack;
   let groupStack: (Group | Root)[] = [];
+
+  let referenceQueue: { reference: Reference, last: Token[] }[] = [];
 
   const repeatErr = (col: number) => {
     throw new SyntaxError(
@@ -77,7 +79,10 @@ export const tokenizer = (regexpStr: string): Root => {
               }
 
               let value = parseInt(digits, 10);
-              last.push({ type: tempTypes.REFERENCE_OR_CHAR, value });
+              const reference: Reference = { type: types.REFERENCE, value };
+
+              last.push(reference);
+              referenceQueue.push({ reference, last });
 
               // Escaped character.
             } else {
@@ -133,7 +138,6 @@ export const tokenizer = (regexpStr: string): Root => {
       // Push group onto stack.
       case '(': {
         // Create group.
-
         let group: Group = {
           type: types.GROUP,
           stack: [],
@@ -300,5 +304,25 @@ export const tokenizer = (regexpStr: string): Root => {
     );
   }
 
+  updateReferences(referenceQueue);
+
   return start;
 };
+
+/**
+ * This is a side effecting function that changes references to chars
+ * if there are not enough capturing groups to reference
+ * See: https://github.com/fent/ret.js/pull/39#issuecomment-1006475703
+ * See: https://github.com/fent/ret.js/issues/38
+ * @param {{reference: (Reference | Char), last: Token[] }[]} referenceQueue
+ * @returns {void}
+ */
+function updateReferences(referenceQueue: {reference: (Reference | Char), last: Token[] }[]) {
+  for (const { reference, last } of referenceQueue) {
+    const groups = last.filter(elem => elem.type === types.GROUP && elem.remember).length;
+    if (groups < reference.value) {
+      // If there is nothing to reference then turn this into a char token
+      reference.type = types.CHAR;
+    }
+  }
+}

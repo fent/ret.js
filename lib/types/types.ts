@@ -8,7 +8,3 @@ export enum types {
   REFERENCE,
   CHAR
 }
-
-export enum tempTypes {
-  REFERENCE_OR_CHAR
-}

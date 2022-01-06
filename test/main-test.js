@@ -465,6 +465,42 @@ vows.describe('Regexp Tokenizer')
       },
     },
 
+    "Reference with more than one digit": {
+      topic: ret('<(\\w+)>\\w*<\\10>'),
+
+      'Reference with more than one digit': t => {
+        assert.deepEqual(t, {
+          type: types.ROOT,
+          stack: [
+            char('<'),
+            { type: types.GROUP, remember: true,
+              stack: [{
+                type: types.REPETITION, min: 1, max: Infinity,
+                value: sets.words() }] },
+            char('>'),
+            { type: types.REPETITION, min: 0, max: Infinity,
+              value: sets.words() },
+            char('<'),
+            { type: types.REFERENCE, value: 10 },
+            char('>'),
+          ],
+        });
+      },
+    },
+
+    "Reference with more than one digit (\\11)": {
+      topic: ret('\\11'),
+
+      'Reference with more than one digit': t => {
+        assert.deepEqual(t, {
+          type: types.ROOT,
+          stack: [
+            { type: types.REFERENCE, value: 11 },
+          ],
+        });
+      },
+    },
+
     'Range (in set) test cases': {
       'Testing complex range cases': {
         'token.from is a hyphen and the range is preceded by a single character [a\\--\\-]': {

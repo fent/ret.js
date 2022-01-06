@@ -13,7 +13,7 @@ vows.describe('strToChars')
 
       'Returned string has converted characters': str => {
         assert.equal(str,
-          '\v \xFF hellow \u00A3 \\( there  \n \\w \u0008');
+          '\v \xFF hellow \u00A3 \\50 there  \n \\w \u0008');
       },
     },
     'Escaped chars in regex source remain espaced': {

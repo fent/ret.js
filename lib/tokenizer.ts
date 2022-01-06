@@ -70,6 +70,9 @@ export const tokenizer = (regexpStr: string): Root => {
             // Check if c is integer.
             // In which case it's a reference.
             if (/\d/.test(c)) {
+              while(/\d/.test(str[i])) {
+                c += str[i++];
+              }
               last.push({ type: types.REFERENCE, value: parseInt(c, 10) });
 
             // Escaped character.

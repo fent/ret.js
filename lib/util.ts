@@ -11,9 +11,9 @@ const CTRL = '@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^ ?';
  * @returns {string}
  */
 export const strToChars = (str: string): string => {
-  const charsRegex = /(\[\\b\])|(\\)?\\(?:u([A-F0-9]{4})|x([A-F0-9]{2})|(0?[0-7]{2})|c([@A-Z[\\\]^?])|([0tnvfr]))/g;
+  const charsRegex = /(\[\\b\])|(\\)?\\(?:u([A-F0-9]{4})|x([A-F0-9]{2})|c([@A-Z[\\\]^?])|([0tnvfr]))/g;
   type EscapedChar = '0' | 't' | 'n' | 'v' | 'f' | 'r' | undefined;
-  return str.replace(charsRegex, (s, b, lbs, a16, b16, c8, dctrl, eslsh : EscapedChar) => {
+  return str.replace(charsRegex, (s, b, lbs, a16, b16, dctrl, eslsh : EscapedChar) => {
     if (lbs) {
       return s;
     }
@@ -21,7 +21,6 @@ export const strToChars = (str: string): string => {
     let code: number = b ? 8 :
       a16 ? parseInt(a16, 16) :
         b16 ? parseInt(b16, 16) :
-          c8 ? parseInt(c8, 8) :
             dctrl ? CTRL.indexOf(dctrl) : {
               0: 0,
               t: 9,

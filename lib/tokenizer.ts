@@ -17,7 +17,8 @@ export const tokenizer = (regexpStr: string): Root => {
   let last: Token[] = start.stack;
   let groupStack: (Group | Root)[] = [];
 
-  let referenceQueue: { reference: Reference, last: Token[] }[] = [];
+  let referenceQueue: Reference[] = [];
+  let groupCount = 0;
 
   const repeatErr = (col: number) => {
     throw new SyntaxError(
@@ -82,7 +83,7 @@ export const tokenizer = (regexpStr: string): Root => {
               const reference: Reference = { type: types.REFERENCE, value };
 
               last.push(reference);
-              referenceQueue.push({ reference, last });
+              referenceQueue.push(reference);
 
               // Escaped character.
             } else {
@@ -165,6 +166,8 @@ export const tokenizer = (regexpStr: string): Root => {
           }
 
           group.remember = false;
+        } else {
+          groupCount += 1;
         }
 
         // Insert subgroup into current group stack.
@@ -304,7 +307,7 @@ export const tokenizer = (regexpStr: string): Root => {
     );
   }
 
-  updateReferences(referenceQueue);
+  updateReferences(referenceQueue, groupCount);
 
   return start;
 };
@@ -314,13 +317,13 @@ export const tokenizer = (regexpStr: string): Root => {
  * if there are not enough capturing groups to reference
  * See: https://github.com/fent/ret.js/pull/39#issuecomment-1006475703
  * See: https://github.com/fent/ret.js/issues/38
- * @param {{reference: (Reference | Char), last: Token[] }[]} referenceQueue
+ * @param {(Reference | Char)[]} referenceQueue
+ * @param {number} groupCount
  * @returns {void}
  */
-function updateReferences(referenceQueue: {reference: (Reference | Char), last: Token[] }[]) {
-  for (const { reference, last } of referenceQueue) {
-    const groups = last.filter(elem => elem.type === types.GROUP && elem.remember).length;
-    if (groups < reference.value) {
+function updateReferences(referenceQueue: (Reference | Char)[], groupCount: number) {
+  for (const reference of referenceQueue) {
+    if (groupCount < reference.value) {
       // If there is nothing to reference then turn this into a char token
       reference.type = types.CHAR;
     }

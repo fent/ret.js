@@ -602,6 +602,132 @@ vows.describe('Regexp Tokenizer')
       },
     },
 
+    // See https://github.com/fent/ret.js/pull/39#issuecomment-1007074351
+    'Nested capturing groups - \\1': {
+      topic: ret('(a) ((b) (c)) - \\1'),
+
+      'Reference with more than one digit': t => {
+        assert.deepEqual(t,
+          {
+            type: 0,
+            stack:
+              [
+                { type: types.GROUP, stack: [char('a')], remember: true },
+                char(' '),
+                { type: types.GROUP, stack: [
+                  { type: types.GROUP, stack: [char('b')], remember: true },
+                  char(' '),
+                  { type: types.GROUP, stack: [char('c')], remember: true },
+                ], remember: true },
+                char(' '),
+                char('-'),
+                char(' '),
+                { type: types.REFERENCE, value: 1 },
+              ],
+          });
+      },
+    },
+
+    'Nested capturing groups - \\2': {
+      topic: ret('(a) ((b) (c)) - \\2'),
+
+      'Reference with more than one digit': t => {
+        assert.deepEqual(t,
+          {
+            type: 0,
+            stack:
+              [
+                { type: types.GROUP, stack: [char('a')], remember: true },
+                char(' '),
+                { type: types.GROUP, stack: [
+                  { type: types.GROUP, stack: [char('b')], remember: true },
+                  char(' '),
+                  { type: types.GROUP, stack: [char('c')], remember: true },
+                ], remember: true },
+                char(' '),
+                char('-'),
+                char(' '),
+                { type: types.REFERENCE, value: 2 },
+              ],
+          });
+      },
+    },
+
+    'Nested capturing groups - \\3': {
+      topic: ret('(a) ((b) (c)) - \\3'),
+
+      'Reference with more than one digit': t => {
+        assert.deepEqual(t,
+          {
+            type: 0,
+            stack:
+              [
+                { type: types.GROUP, stack: [char('a')], remember: true },
+                char(' '),
+                { type: types.GROUP, stack: [
+                  { type: types.GROUP, stack: [char('b')], remember: true },
+                  char(' '),
+                  { type: types.GROUP, stack: [char('c')], remember: true },
+                ], remember: true },
+                char(' '),
+                char('-'),
+                char(' '),
+                { type: types.REFERENCE, value: 3 },
+              ],
+          });
+      },
+    },
+
+    'Nested capturing groups - \\4': {
+      topic: ret('(a) ((b) (c)) - \\4'),
+
+      'Reference with more than one digit': t => {
+        assert.deepEqual(t,
+          {
+            type: 0,
+            stack:
+              [
+                { type: types.GROUP, stack: [char('a')], remember: true },
+                char(' '),
+                { type: types.GROUP, stack: [
+                  { type: types.GROUP, stack: [char('b')], remember: true },
+                  char(' '),
+                  { type: types.GROUP, stack: [char('c')], remember: true },
+                ], remember: true },
+                char(' '),
+                char('-'),
+                char(' '),
+                { type: types.REFERENCE, value: 4 },
+              ],
+          });
+      },
+    },
+
+    'Nested capturing groups - \\5 (character)': {
+      topic: ret('(a) ((b) (c)) - \\5'),
+
+      'Reference with more than one digit': t => {
+        assert.deepEqual(t,
+          {
+            type: 0,
+            stack:
+              [
+                { type: types.GROUP, stack: [char('a')], remember: true },
+                char(' '),
+                { type: types.GROUP, stack: [
+                  { type: types.GROUP, stack: [char('b')], remember: true },
+                  char(' '),
+                  { type: types.GROUP, stack: [char('c')], remember: true },
+                ], remember: true },
+                char(' '),
+                char('-'),
+                char(' '),
+                { type: types.CHAR, value: 5 },
+              ],
+          });
+      },
+    },
+
     'Range (in set) test cases': {
       'Testing complex range cases': {
         'token.from is a hyphen and the range is preceded by a single character [a\\--\\-]': {

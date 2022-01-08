@@ -325,7 +325,7 @@ export const tokenizer = (regexpStr: string): Root => {
  * @param {number} groupCount
  * @returns {void}
  */
- function updateReferences(referenceQueue: (Reference | Char)[], groupCount: number) {
+function updateReferences(referenceQueue: (Reference | Char)[], groupCount: number) {
   for (const reference of referenceQueue) {
     if (groupCount < reference.value) {
       // If there is nothing to reference then turn this into a char token

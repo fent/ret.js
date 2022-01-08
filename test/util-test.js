@@ -18,11 +18,11 @@ vows.describe('strToChars')
     },
     'Escaped chars in regex source remain espaced': {
       topic: () => util.strToChars(
-        /\\xFF hellow \\u00A3 \\50 there \\cB \\n \\w/.source),
+        /\\xFF hellow \\u00A3 \\50 \\u0028 there \\cB \\n \\w/.source),
 
       'Returned string has escaped characters': str => {
         assert.equal(str,
-          '\\\\xFF hellow \\\\u00A3 \\\\50 there \\\\cB \\\\n \\\\w');
+          '\\\\xFF hellow \\\\u00A3 \\\\50 \\\\u0028 there \\\\cB \\\\n \\\\w');
       },
     },
   })

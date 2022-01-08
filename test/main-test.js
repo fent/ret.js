@@ -113,13 +113,11 @@ vows.describe('Regexp Tokenizer')
         assert.deepEqual(t, {
           type: types.ROOT,
           stack: [
-            {
-              type: types.SET,
+            { type: types.SET,
               set: [
                 char('$'),
                 char('!'),
-                {
-                  type: types.RANGE,
+                { type: types.RANGE,
                   from: 'a'.charCodeAt(0),
                   to: 'z'.charCodeAt(0),
                 },
@@ -138,8 +136,7 @@ vows.describe('Regexp Tokenizer')
             char('g'),
             char(' '),
 
-            {
-              type: types.SET,
+            { type: types.SET,
               set: [{
                 type: types.RANGE,
                 from: '0'.charCodeAt(0),
@@ -184,14 +181,12 @@ vows.describe('Regexp Tokenizer')
         assert.deepEqual(t, {
           type: types.ROOT,
           stack: [
-            {
-              type: types.SET,
+            { type: types.SET,
               set: charStr('01'),
               not: false,
             },
             char('-'),
-            {
-              type: types.SET,
+            { type: types.SET,
               set: charStr('ab'),
               not: false,
             },
@@ -229,8 +224,7 @@ vows.describe('Regexp Tokenizer')
               char('e'),
               char('y'),
               char(' '),
-              {
-                type: types.GROUP,
+              { type: types.GROUP,
                 remember: true,
                 stack: charStr('there'),
               },
@@ -265,8 +259,7 @@ vows.describe('Regexp Tokenizer')
               char('h'),
               char('a'),
               char('t'),
-              {
-                type: types.GROUP,
+              { type: types.GROUP,
                 remember: false,
                 notFollowedBy: true,
                 stack: charStr('ever'),
@@ -288,8 +281,7 @@ vows.describe('Regexp Tokenizer')
               char('l'),
               char('l'),
               char('o'),
-              {
-                type: types.GROUP,
+              { type: types.GROUP,
                 remember: false,
                 followedBy: true,
                 stack: charStr(' there'),
@@ -307,27 +299,21 @@ vows.describe('Regexp Tokenizer')
             type: types.ROOT,
             stack: [
               char('a'),
-              {
-                type: types.GROUP,
+              { type: types.GROUP,
                 remember: true,
                 stack: [
                   char('b'),
-                  {
-                    type: types.GROUP,
+                  { type: types.GROUP,
                     remember: true,
                     options: [
                       [char('c')],
-                      [{
-                        type: types.GROUP,
+                      [{ type: types.GROUP,
                         remember: false,
-                        stack: charStr('d'),
-                      }],
-                    ],
-                  },
+                        stack: charStr('d') }],
+                    ] },
                   char('f'),
                   char('g'),
-                ],
-              },
+                ] },
 
               char(' '),
               char('@'),
@@ -348,8 +334,7 @@ vows.describe('Regexp Tokenizer')
           assert.deepEqual(t, {
             type: types.ROOT,
             stack: [
-              {
-                type: types.REPETITION, min: 2, max: 2,
+              { type: types.REPETITION, min: 2, max: 2,
                 value: {
                   type: types.GROUP,
                   remember: false,
@@ -369,10 +354,8 @@ vows.describe('Regexp Tokenizer')
             type: types.ROOT,
             stack: [
               char('N'),
-              {
-                type: types.REPETITION, min: 6, max: Infinity,
-                value: char('O'),
-              },
+              { type: types.REPETITION, min: 6, max: Infinity,
+                value: char('O') },
             ],
           });
         },
@@ -413,8 +396,7 @@ vows.describe('Regexp Tokenizer')
           assert.deepEqual(t, {
             type: types.ROOT,
             stack: charStr('hey').concat([
-              {
-                type: types.REPETITION, min: 0, max: 1,
+              { type: types.REPETITION, min: 0, max: 1,
                 value: {
                   type: types.GROUP, remember: false,
                   stack: charStr(' you'),
@@ -450,10 +432,8 @@ vows.describe('Regexp Tokenizer')
             type: types.ROOT,
             stack: [
               char('X'),
-              {
-                type: types.REPETITION, min: 0, max: Infinity,
-                value: char('F'),
-              },
+              { type: types.REPETITION, min: 0, max: Infinity,
+                value: char('F') },
               char('D'),
             ],
           });
@@ -470,18 +450,13 @@ vows.describe('Regexp Tokenizer')
           type: types.ROOT,
           stack: [
             char('<'),
-            {
-              type: types.GROUP, remember: true,
+            { type: types.GROUP, remember: true,
               stack: [{
                 type: types.REPETITION, min: 1, max: Infinity,
-                value: sets.words(),
-              }],
-            },
+                value: sets.words() }] },
             char('>'),
-            {
-              type: types.REPETITION, min: 0, max: Infinity,
-              value: sets.words(),
-            },
+            { type: types.REPETITION, min: 0, max: Infinity,
+              value: sets.words() },
             char('<'),
             { type: types.REFERENCE, value: 1 },
             char('>'),

@@ -22,7 +22,8 @@ export const tokenizer = (regexpStr: string): Root => {
 
   const repeatErr = (col: number) => {
     throw new SyntaxError(
-      `Invalid regular expression: /${regexpStr
+      `Invalid regular expression: /${
+        regexpStr
       }/: Nothing to repeat at column ${col - 1}`,
     );
   };
@@ -85,7 +86,7 @@ export const tokenizer = (regexpStr: string): Root => {
               last.push(reference);
               referenceQueue.push(reference);
 
-              // Escaped character.
+            // Escaped character.
             } else {
               last.push({ type: types.CHAR, value: c.charCodeAt(0) });
             }
@@ -154,12 +155,13 @@ export const tokenizer = (regexpStr: string): Root => {
           if (c === '=') {
             group.followedBy = true;
 
-            // Match if not followed by.
+          // Match if not followed by.
           } else if (c === '!') {
             group.notFollowedBy = true;
           } else if (c !== ':') {
             throw new SyntaxError(
-              `Invalid regular expression: /${regexpStr
+              `Invalid regular expression: /${
+                regexpStr
               }/: Invalid group, character '${c}'` +
               ` after '?' at column ${i - 1}`,
             );
@@ -188,7 +190,8 @@ export const tokenizer = (regexpStr: string): Root => {
       case ')':
         if (groupStack.length === 0) {
           throw new SyntaxError(
-            `Invalid regular expression: /${regexpStr
+            `Invalid regular expression: /${
+              regexpStr
             }/: Unmatched ) at column ${i - 1}`,
           );
         }
@@ -302,7 +305,8 @@ export const tokenizer = (regexpStr: string): Root => {
   // Check if any groups have not been closed.
   if (groupStack.length !== 0) {
     throw new SyntaxError(
-      `Invalid regular expression: /${regexpStr
+      `Invalid regular expression: /${
+        regexpStr
       }/: Unterminated group`,
     );
   }
@@ -321,7 +325,7 @@ export const tokenizer = (regexpStr: string): Root => {
  * @param {number} groupCount
  * @returns {void}
  */
-function updateReferences(referenceQueue: (Reference | Char)[], groupCount: number) {
+ function updateReferences(referenceQueue: (Reference | Char)[], groupCount: number) {
   for (const reference of referenceQueue) {
     if (groupCount < reference.value) {
       // If there is nothing to reference then turn this into a char token

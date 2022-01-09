@@ -703,6 +703,31 @@ vows.describe('Regexp Tokenizer')
       },
     },
 
+    // https://github.com/fent/ret.js/pull/39#issuecomment-1008229226
+    'escaped octal numbers': {
+      '\\10': {
+        topic: ret('\\10'),
+        'Tokenizes correctly': t => {
+          assert.deepStrictEqual(t, {
+            type: types.ROOT, stack: [
+              { type: types.CHAR, value: 10 },
+            ],
+          });
+        },
+      },
+      '\\18': {
+        topic: ret('\\18'),
+        'Tokenizes correctly': t => {
+          assert.deepStrictEqual(t, {
+            type: types.ROOT, stack: [
+              { type: types.CHAR, value: 1 },
+              char('8'),
+            ],
+          });
+        },
+      },
+    },
+
     'Range (in set) test cases': {
       'Testing complex range cases': {
         'token.from is a hyphen and the range is preceded by a single character [a\\--\\-]': {

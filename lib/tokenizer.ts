@@ -2,6 +2,8 @@ import * as util from './util';
 import { Group, types, Root, Token, Reference, Char } from './types';
 import * as sets from './sets';
 
+type ReferenceQueue = { reference: (Reference | Char), stack: Token[], index: number }[];
+
 /**
  * Tokenizes a regular expression (that is currently a string)
  * @param {string} regexpStr String of regular expression to be tokenized
@@ -17,7 +19,7 @@ export const tokenizer = (regexpStr: string): Root => {
   let last: Token[] = start.stack;
   let groupStack: (Group | Root)[] = [];
 
-  let referenceQueue: Reference[] = [];
+  let referenceQueue: ReferenceQueue = [];
   let groupCount = 0;
 
   const repeatErr = (col: number) => {
@@ -84,7 +86,7 @@ export const tokenizer = (regexpStr: string): Root => {
               const reference: Reference = { type: types.REFERENCE, value };
 
               last.push(reference);
-              referenceQueue.push(reference);
+              referenceQueue.push({ reference, stack: last, index: last.length - 1 });
 
             // Escaped character.
             } else {
@@ -325,11 +327,34 @@ export const tokenizer = (regexpStr: string): Root => {
  * @param {number} groupCount
  * @returns {void}
  */
-function updateReferences(referenceQueue: (Reference | Char)[], groupCount: number) {
-  for (const reference of referenceQueue) {
-    if (groupCount < reference.value) {
+function updateReferences(referenceQueue: ReferenceQueue, groupCount: number) {
+  // Note: We go through the queue in reverse order so
+  // that index we use is correct even if we have to add
+  // multiple tokens to one stack
+  for (const elem of referenceQueue.reverse()) {
+    if (groupCount < elem.reference.value) {
       // If there is nothing to reference then turn this into a char token
-      reference.type = types.CHAR;
+      elem.reference.type = types.CHAR;
+
+      const valueString = elem.reference.value.toString();
+      // If the number is not octal then we need to create multiple tokens
+      // https://github.com/fent/ret.js/pull/39#issuecomment-1008229226
+      if (!/^[0-7]+$/.test(valueString)) {
+        elem.reference.value = parseInt(valueString[0], 10);
+
+        if (valueString.length > 1) {
+          const tail = elem.stack.splice(elem.index + 1);
+
+          // eslint-disable-next-line max-depth
+          for (const char of valueString.slice(1)) {
+            elem.stack.push({
+              type: types.CHAR,
+              value: char.charCodeAt(0),
+            });
+          }
+          elem.stack.push(...tail);
+        }
+      }
     }
   }
 }

@@ -726,6 +726,26 @@ vows.describe('Regexp Tokenizer')
           });
         },
       },
+      '\\2': {
+        topic: ret('\\2'),
+        'Tokenizes correctly': t => {
+          assert.deepStrictEqual(t, {
+            type: types.ROOT, stack: [
+              { type: types.CHAR, value: 2 }
+            ],
+          });
+        },
+      },
+      '\\9': {
+        topic: ret('\\9'),
+        'Tokenizes correctly': t => {
+          assert.deepStrictEqual(t, {
+            type: types.ROOT, stack: [
+              { type: types.CHAR, value: '9'.charCodeAt(0) }
+            ],
+          });
+        },
+      },
     },
 
     'Range (in set) test cases': {

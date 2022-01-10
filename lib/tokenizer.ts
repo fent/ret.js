@@ -77,7 +77,6 @@ export const tokenizer = (regexpStr: string): Root => {
             if (/\d/.test(c)) {
               let digits = c;
 
-              // eslint-disable-next-line max-depth
               while (/\d/.test(str[i])) {
                 digits += str[i++];
               }
@@ -346,7 +345,6 @@ function updateReferences(referenceQueue: ReferenceQueue, groupCount: number) {
         if (valueString.length > 1) {
           const tail = elem.stack.splice(elem.index + 1);
 
-          // eslint-disable-next-line max-depth
           for (const char of valueString.slice(1)) {
             elem.stack.push({
               type: types.CHAR,

@@ -120,7 +120,7 @@ rules:
   - SwitchCase: 1
   key-spacing: error
   keyword-spacing: error
-  max-depth: error
+  max-depth: off
   max-len:
   - error
   - 120

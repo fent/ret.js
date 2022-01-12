@@ -340,7 +340,7 @@ function updateReferences(referenceQueue: ReferenceQueue, groupCount: number) {
       // https://github.com/fent/ret.js/pull/39#issuecomment-1008229226
       if (!/^[0-7]+$/.test(valueString)) {
         let i = 0;
-        
+
         while (valueString[i] !== '8' && valueString[i] !== '9') {
           i += 1;
         }

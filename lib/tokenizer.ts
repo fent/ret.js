@@ -339,13 +339,23 @@ function updateReferences(referenceQueue: ReferenceQueue, groupCount: number) {
       // If the number is not octal then we need to create multiple tokens
       // https://github.com/fent/ret.js/pull/39#issuecomment-1008229226
       if (!/^[0-7]+$/.test(valueString)) {
-        const val = parseInt(valueString[0], 10);
-        elem.reference.value = val > 7 ? valueString.charCodeAt(0) : val;
+        let i = 0;
+        
+        while (valueString[i] !== '8' && valueString[i] !== '9') {
+          i += 1;
+        }
 
-        if (valueString.length > 1) {
+        if (i === 0) {
+          elem.reference.value = valueString.charCodeAt(0);
+          i += 1;
+        } else {
+          elem.reference.value = parseInt(valueString.slice(0, i), 10);
+        }
+
+        if (valueString.length > i) {
           const tail = elem.stack.splice(elem.index + 1);
 
-          for (const char of valueString.slice(1)) {
+          for (const char of valueString.slice(i)) {
             elem.stack.push({
               type: types.CHAR,
               value: char.charCodeAt(0),

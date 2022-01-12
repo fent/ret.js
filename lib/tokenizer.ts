@@ -346,9 +346,12 @@ function updateReferences(referenceQueue: ReferenceQueue, groupCount: number) {
         }
 
         if (i === 0) {
+          // Handling case when escaped number starts with 8 or 9
           elem.reference.value = valueString.charCodeAt(0);
           i += 1;
         } else {
+          // If the escaped number does not start with 8 or 9, then all
+          // 0-7 digits before the first 8/9 form the first character code
           elem.reference.value = parseInt(valueString.slice(0, i), 10);
         }
 

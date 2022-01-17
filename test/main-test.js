@@ -465,6 +465,321 @@ vows.describe('Regexp Tokenizer')
       },
     },
 
+    'NOT Reference with more than one digit': {
+      topic: ret('<(\\w+)>\\w*<\\10>'),
+
+      'Reference with more than one digit': t => {
+        assert.deepEqual(t, {
+          type: types.ROOT,
+          stack: [
+            char('<'),
+            {
+              type: types.GROUP, remember: true,
+              stack: [{
+                type: types.REPETITION, min: 1, max: Infinity,
+                value: sets.words(),
+              }],
+            },
+            char('>'),
+            {
+              type: types.REPETITION, min: 0, max: Infinity,
+              value: sets.words(),
+            },
+            char('<'),
+            { type: types.CHAR, value: 10 },
+            char('>'),
+          ],
+        });
+      },
+    },
+
+    'Reference with more than one digit': {
+      topic: ret('(a)(b)(c)(d)(e)(f)(g)(h)(i)(j) - \\10'),
+
+      'Reference with more than one digit': t => {
+        assert.deepEqual(t,
+          {
+            type: 0,
+            stack:
+              [
+                { type: types.GROUP, stack: [char('a')], remember: true },
+                { type: types.GROUP, stack: [char('b')], remember: true },
+                { type: types.GROUP, stack: [char('c')], remember: true },
+                { type: types.GROUP, stack: [char('d')], remember: true },
+                { type: types.GROUP, stack: [char('e')], remember: true },
+                { type: types.GROUP, stack: [char('f')], remember: true },
+                { type: types.GROUP, stack: [char('g')], remember: true },
+                { type: types.GROUP, stack: [char('h')], remember: true },
+                { type: types.GROUP, stack: [char('i')], remember: true },
+                { type: types.GROUP, stack: [char('j')], remember: true },
+                char(' '),
+                char('-'),
+                char(' '),
+                { type: types.REFERENCE, value: 10 },
+              ],
+          });
+      },
+    },
+
+    'NOT Reference with more than one digit (a)(b)(c)(d)(e)(f)(g)(h)(i) - \\10': {
+      topic: ret('(a)(b)(c)(d)(e)(f)(g)(h)(i) - \\10'),
+
+      'Reference with more than one digit': t => {
+        assert.deepEqual(t,
+          {
+            type: 0,
+            stack:
+              [
+                { type: types.GROUP, stack: [char('a')], remember: true },
+                { type: types.GROUP, stack: [char('b')], remember: true },
+                { type: types.GROUP, stack: [char('c')], remember: true },
+                { type: types.GROUP, stack: [char('d')], remember: true },
+                { type: types.GROUP, stack: [char('e')], remember: true },
+                { type: types.GROUP, stack: [char('f')], remember: true },
+                { type: types.GROUP, stack: [char('g')], remember: true },
+                { type: types.GROUP, stack: [char('h')], remember: true },
+                { type: types.GROUP, stack: [char('i')], remember: true },
+                char(' '),
+                char('-'),
+                char(' '),
+                { type: types.CHAR, value: 10 },
+              ],
+          });
+      },
+    },
+
+    'Reference with more than one digit and referencing group after digit': {
+      topic: ret('(a)(b)(c)(d)(e)(f)(g)(h)(i) - \\10 (j)'),
+
+      'Reference with more than one digit': t => {
+        assert.deepEqual(t,
+          {
+            type: 0,
+            stack:
+              [
+                { type: types.GROUP, stack: [char('a')], remember: true },
+                { type: types.GROUP, stack: [char('b')], remember: true },
+                { type: types.GROUP, stack: [char('c')], remember: true },
+                { type: types.GROUP, stack: [char('d')], remember: true },
+                { type: types.GROUP, stack: [char('e')], remember: true },
+                { type: types.GROUP, stack: [char('f')], remember: true },
+                { type: types.GROUP, stack: [char('g')], remember: true },
+                { type: types.GROUP, stack: [char('h')], remember: true },
+                { type: types.GROUP, stack: [char('i')], remember: true },
+                char(' '),
+                char('-'),
+                char(' '),
+                { type: types.REFERENCE, value: 10 },
+                char(' '),
+                { type: types.GROUP, stack: [char('j')], remember: true },
+              ],
+          });
+      },
+    },
+
+    // See https://github.com/fent/ret.js/pull/39#issuecomment-1007074351
+    'Nested capturing groups - \\1': {
+      topic: ret('(a) ((b) (c)) - \\1'),
+
+      'Reference with more than one digit': t => {
+        assert.deepEqual(t,
+          {
+            type: 0,
+            stack:
+              [
+                { type: types.GROUP, stack: [char('a')], remember: true },
+                char(' '),
+                { type: types.GROUP, stack: [
+                  { type: types.GROUP, stack: [char('b')], remember: true },
+                  char(' '),
+                  { type: types.GROUP, stack: [char('c')], remember: true },
+                ], remember: true },
+                char(' '),
+                char('-'),
+                char(' '),
+                { type: types.REFERENCE, value: 1 },
+              ],
+          });
+      },
+    },
+
+    'Nested capturing groups - \\2': {
+      topic: ret('(a) ((b) (c)) - \\2'),
+
+      'Reference with more than one digit': t => {
+        assert.deepEqual(t,
+          {
+            type: 0,
+            stack:
+              [
+                { type: types.GROUP, stack: [char('a')], remember: true },
+                char(' '),
+                { type: types.GROUP, stack: [
+                  { type: types.GROUP, stack: [char('b')], remember: true },
+                  char(' '),
+                  { type: types.GROUP, stack: [char('c')], remember: true },
+                ], remember: true },
+                char(' '),
+                char('-'),
+                char(' '),
+                { type: types.REFERENCE, value: 2 },
+              ],
+          });
+      },
+    },
+
+    'Nested capturing groups - \\3': {
+      topic: ret('(a) ((b) (c)) - \\3'),
+
+      'Reference with more than one digit': t => {
+        assert.deepEqual(t,
+          {
+            type: 0,
+            stack:
+              [
+                { type: types.GROUP, stack: [char('a')], remember: true },
+                char(' '),
+                { type: types.GROUP, stack: [
+                  { type: types.GROUP, stack: [char('b')], remember: true },
+                  char(' '),
+                  { type: types.GROUP, stack: [char('c')], remember: true },
+                ], remember: true },
+                char(' '),
+                char('-'),
+                char(' '),
+                { type: types.REFERENCE, value: 3 },
+              ],
+          });
+      },
+    },
+
+    'Nested capturing groups - \\4': {
+      topic: ret('(a) ((b) (c)) - \\4'),
+
+      'Reference with more than one digit': t => {
+        assert.deepEqual(t,
+          {
+            type: 0,
+            stack:
+              [
+                { type: types.GROUP, stack: [char('a')], remember: true },
+                char(' '),
+                { type: types.GROUP, stack: [
+                  { type: types.GROUP, stack: [char('b')], remember: true },
+                  char(' '),
+                  { type: types.GROUP, stack: [char('c')], remember: true },
+                ], remember: true },
+                char(' '),
+                char('-'),
+                char(' '),
+                { type: types.REFERENCE, value: 4 },
+              ],
+          });
+      },
+    },
+
+    'Nested capturing groups - \\5 (character)': {
+      topic: ret('(a) ((b) (c)) - \\5'),
+
+      'Reference with more than one digit': t => {
+        assert.deepEqual(t,
+          {
+            type: 0,
+            stack:
+              [
+                { type: types.GROUP, stack: [char('a')], remember: true },
+                char(' '),
+                { type: types.GROUP, stack: [
+                  { type: types.GROUP, stack: [char('b')], remember: true },
+                  char(' '),
+                  { type: types.GROUP, stack: [char('c')], remember: true },
+                ], remember: true },
+                char(' '),
+                char('-'),
+                char(' '),
+                { type: types.CHAR, value: 5 },
+              ],
+          });
+      },
+    },
+
+    // https://github.com/fent/ret.js/pull/39#issuecomment-1008229226
+    'escaped octal numbers': {
+      '\\10': {
+        topic: ret('\\10'),
+        'Tokenizes correctly': t => {
+          assert.deepStrictEqual(t, {
+            type: types.ROOT, stack: [
+              { type: types.CHAR, value: 10 },
+            ],
+          });
+        },
+      },
+      '\\18': {
+        topic: ret('\\18'),
+        'Tokenizes correctly': t => {
+          assert.deepStrictEqual(t, {
+            type: types.ROOT, stack: [
+              { type: types.CHAR, value: 1 },
+              char('8'),
+            ],
+          });
+        },
+      },
+      '\\108': {
+        topic: ret('\\108'),
+        'Tokenizes correctly': t => {
+          assert.deepStrictEqual(t, {
+            type: types.ROOT, stack: [
+              { type: types.CHAR, value: 10 },
+              char('8'),
+            ],
+          });
+        },
+      },
+      '\\107': {
+        topic: ret('\\107'),
+        'Tokenizes correctly': t => {
+          assert.deepStrictEqual(t, {
+            type: types.ROOT, stack: [
+              { type: types.CHAR, value: 107 },
+            ],
+          });
+        },
+      },
+      '\\2': {
+        topic: ret('\\2'),
+        'Tokenizes correctly': t => {
+          assert.deepStrictEqual(t, {
+            type: types.ROOT, stack: [
+              { type: types.CHAR, value: 2 },
+            ],
+          });
+        },
+      },
+      '\\9': {
+        topic: ret('\\9'),
+        'Tokenizes correctly': t => {
+          assert.deepStrictEqual(t, {
+            type: types.ROOT, stack: [
+              char('9'),
+            ],
+          });
+        },
+      },
+      '\\90': {
+        topic: ret('\\90'),
+        'Tokenizes correctly': t => {
+          assert.deepStrictEqual(t, {
+            type: types.ROOT, stack: [
+              char('9'),
+              char('0'),
+            ],
+          });
+        },
+      },
+    },
+
     'Range (in set) test cases': {
       'Testing complex range cases': {
         'token.from is a hyphen and the range is preceded by a single character [a\\--\\-]': {

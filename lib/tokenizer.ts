@@ -1,6 +1,8 @@
 import * as util from './util';
-import { Group, types, Root, Token } from './types';
+import { Group, types, Root, Token, Reference, Char } from './types';
 import * as sets from './sets';
+
+type ReferenceQueue = { reference: (Reference | Char), stack: Token[], index: number }[];
 
 /**
  * Tokenizes a regular expression (that is currently a string)
@@ -16,6 +18,9 @@ export const tokenizer = (regexpStr: string): Root => {
   let lastGroup: Group | Root = start;
   let last: Token[] = start.stack;
   let groupStack: (Group | Root)[] = [];
+
+  let referenceQueue: ReferenceQueue = [];
+  let groupCount = 0;
 
   const repeatErr = (col: number) => {
     throw new SyntaxError(
@@ -70,7 +75,17 @@ export const tokenizer = (regexpStr: string): Root => {
             // Check if c is integer.
             // In which case it's a reference.
             if (/\d/.test(c)) {
-              last.push({ type: types.REFERENCE, value: parseInt(c, 10) });
+              let digits = c;
+
+              while (/\d/.test(str[i])) {
+                digits += str[i++];
+              }
+
+              let value = parseInt(digits, 10);
+              const reference: Reference = { type: types.REFERENCE, value };
+
+              last.push(reference);
+              referenceQueue.push({ reference, stack: last, index: last.length - 1 });
 
             // Escaped character.
             } else {
@@ -154,6 +169,8 @@ export const tokenizer = (regexpStr: string): Root => {
           }
 
           group.remember = false;
+        } else {
+          groupCount += 1;
         }
 
         // Insert subgroup into current group stack.
@@ -295,5 +312,62 @@ export const tokenizer = (regexpStr: string): Root => {
     );
   }
 
+  updateReferences(referenceQueue, groupCount);
+
   return start;
 };
+
+/**
+ * This is a side effecting function that changes references to chars
+ * if there are not enough capturing groups to reference
+ * See: https://github.com/fent/ret.js/pull/39#issuecomment-1006475703
+ * See: https://github.com/fent/ret.js/issues/38
+ * @param {(Reference | Char)[]} referenceQueue
+ * @param {number} groupCount
+ * @returns {void}
+ */
+function updateReferences(referenceQueue: ReferenceQueue, groupCount: number) {
+  // Note: We go through the queue in reverse order so
+  // that index we use is correct even if we have to add
+  // multiple tokens to one stack
+  for (const elem of referenceQueue.reverse()) {
+    if (groupCount < elem.reference.value) {
+      // If there is nothing to reference then turn this into a char token
+      elem.reference.type = types.CHAR;
+
+      const valueString = elem.reference.value.toString();
+      // If the number is not octal then we need to create multiple tokens
+      // https://github.com/fent/ret.js/pull/39#issuecomment-1008229226
+      if (!/^[0-7]+$/.test(valueString)) {
+        let i = 0;
+
+        while (valueString[i] !== '8' && valueString[i] !== '9') {
+          i += 1;
+        }
+
+        if (i === 0) {
+          // Handling case when escaped number starts with 8 or 9
+          elem.reference.value = valueString.charCodeAt(0);
+          i += 1;
+        } else {
+          // If the escaped number does not start with 8 or 9, then all
+          // 0-7 digits before the first 8/9 form the first character code
+          // see: https://github.com/fent/ret.js/pull/39#discussion_r780747085
+          elem.reference.value = parseInt(valueString.slice(0, i), 10);
+        }
+
+        if (valueString.length > i) {
+          const tail = elem.stack.splice(elem.index + 1);
+
+          for (const char of valueString.slice(i)) {
+            elem.stack.push({
+              type: types.CHAR,
+              value: char.charCodeAt(0),
+            });
+          }
+          elem.stack.push(...tail);
+        }
+      }
+    }
+  }
+}

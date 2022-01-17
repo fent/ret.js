@@ -762,7 +762,7 @@ vows.describe('Regexp Tokenizer')
         'Tokenizes correctly': t => {
           assert.deepStrictEqual(t, {
             type: types.ROOT, stack: [
-              { type: types.CHAR, value: '9'.charCodeAt(0) },
+              char('9'),
             ],
           });
         },

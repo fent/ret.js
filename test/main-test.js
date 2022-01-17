@@ -767,6 +767,17 @@ vows.describe('Regexp Tokenizer')
           });
         },
       },
+      '\\90': {
+        topic: ret('\\90'),
+        'Tokenizes correctly': t => {
+          assert.deepStrictEqual(t, {
+            type: types.ROOT, stack: [
+              char('9'),
+              char('0'),
+            ],
+          });
+        },
+      },
     },
 
     'Range (in set) test cases': {

@@ -336,6 +336,7 @@ function updateReferences(referenceQueue: ReferenceQueue, groupCount: number) {
       elem.reference.type = types.CHAR;
 
       const valueString = elem.reference.value.toString();
+      elem.reference.value = parseInt(valueString, 8);
       // If the number is not octal then we need to create multiple tokens
       // https://github.com/fent/ret.js/pull/39#issuecomment-1008229226
       if (!/^[0-7]+$/.test(valueString)) {
@@ -353,7 +354,7 @@ function updateReferences(referenceQueue: ReferenceQueue, groupCount: number) {
           // If the escaped number does not start with 8 or 9, then all
           // 0-7 digits before the first 8/9 form the first character code
           // see: https://github.com/fent/ret.js/pull/39#discussion_r780747085
-          elem.reference.value = parseInt(valueString.slice(0, i), 10);
+          elem.reference.value = parseInt(valueString.slice(0, i), 8);
         }
 
         if (valueString.length > i) {

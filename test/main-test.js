@@ -486,7 +486,7 @@ vows.describe('Regexp Tokenizer')
               value: sets.words(),
             },
             char('<'),
-            { type: types.CHAR, value: 10 },
+            { type: types.CHAR, value: 8 },
             char('>'),
           ],
         });
@@ -542,7 +542,7 @@ vows.describe('Regexp Tokenizer')
                 char(' '),
                 char('-'),
                 char(' '),
-                { type: types.CHAR, value: 10 },
+                { type: types.CHAR, value: 8 },
               ],
           });
       },
@@ -710,7 +710,7 @@ vows.describe('Regexp Tokenizer')
         'Tokenizes correctly': t => {
           assert.deepStrictEqual(t, {
             type: types.ROOT, stack: [
-              { type: types.CHAR, value: 10 },
+              { type: types.CHAR, value: 8 },
             ],
           });
         },
@@ -731,7 +731,7 @@ vows.describe('Regexp Tokenizer')
         'Tokenizes correctly': t => {
           assert.deepStrictEqual(t, {
             type: types.ROOT, stack: [
-              { type: types.CHAR, value: 10 },
+              { type: types.CHAR, value: 8 },
               char('8'),
             ],
           });
@@ -742,7 +742,7 @@ vows.describe('Regexp Tokenizer')
         'Tokenizes correctly': t => {
           assert.deepStrictEqual(t, {
             type: types.ROOT, stack: [
-              { type: types.CHAR, value: 107 },
+              { type: types.CHAR, value: 71 },
             ],
           });
         },

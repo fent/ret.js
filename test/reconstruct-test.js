@@ -139,6 +139,7 @@ vows.describe('Regexp Reconstruction')
         'matched previous clause if not followed by this': inverseTestFactory('what(?!ever)'),
         'matched next clause': inverseTestFactory('hello(?= there)'),
         'with subgroup': inverseTestFactory('a(b(c|(?:d))fg) @_@'),
+        'with name': inverseTestFactory('(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})')
       },
       'Custom repetition with': {
         'exact amount': inverseTestFactory('(?:pika){2}'),

@@ -159,6 +159,25 @@ export const tokenizer = (regexpStr: string): Root => {
           // Match if not followed by.
           } else if (c === '!') {
             group.notFollowedBy = true;
+          } else if (c === '<') {
+            let name = '';
+
+            while (i < str.length && str[i] !== '>') {
+              name += str[i];
+              i++;
+            }
+
+            if (!name) {
+              throw new SyntaxError(
+                `Invalid regular expression: /${
+                  regexpStr
+                }/: Invalid group name, character '${str[i]}'` +
+                ` after '<' at column ${i + 1}`,
+              );
+            }
+
+            group.name = name;
+            i++;
           } else if (c !== ':') {
             throw new SyntaxError(
               `Invalid regular expression: /${

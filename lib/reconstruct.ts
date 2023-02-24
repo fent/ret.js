@@ -35,12 +35,14 @@ export const reconstruct = (token: Tokens): string => {
       return writeSetTokens(token);
     case types.GROUP: {
       // Check token.remember
+      const named = token.name ? `<${token.name}>` : ''
       const prefix =
         token.remember ? '' :
           token.followedBy ? '?=' :
             token.notFollowedBy ? '?!' :
-              '?:';
-      return `(${prefix}${createAlternate(token)})`;
+              named ? '?' :
+                '?:';
+      return `(${prefix}${named}${createAlternate(token)})`;
     }
     case types.REPETITION: {
       const { min, max } = token;

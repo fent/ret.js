@@ -162,7 +162,19 @@ export const tokenizer = (regexpStr: string): Root => {
           } else if (c === '<') {
             let name = '';
 
-            while (i < str.length && str[i] !== '>') {
+            if ((/^[a-z]$/i).test(str[i])) {
+              name += str[i];
+              i++;
+            } else {
+              throw new SyntaxError(
+                `Invalid regular expression: /${
+                  regexpStr
+                }/: Invalid group name, character '${str[i]}'` +
+                ` after '<' at column ${i + 1}`,
+              );
+            }
+
+            while (i < str.length && (/^[a-z0-9]$/i).test(str[i])) {
               name += str[i];
               i++;
             }
@@ -173,6 +185,15 @@ export const tokenizer = (regexpStr: string): Root => {
                   regexpStr
                 }/: Invalid group name, character '${str[i]}'` +
                 ` after '<' at column ${i + 1}`,
+              );
+            }
+
+            if (str[i] !== '>') {
+              throw new SyntaxError(
+                `Invalid regular expression: /${
+                  regexpStr
+                }/: Unclosed capture group name, expected '>', found` +
+                ` '${str[i]}' at column ${i + 1}`,
               );
             }
 

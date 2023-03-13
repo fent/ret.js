@@ -71,8 +71,14 @@ vows.describe('Regexp Tokenizer Errors')
     'Wrong group type': macro('abcde(?>hellow)', 'Invalid character',
       'Invalid group, character \'>\' after \'?\' at column 7'),
 
-    'Bad group name': macro('(?<>\d{4})', 'Invalid group name',
+    'Empty group name': macro('(?<>\\d{4})', 'Invalid group name',
       'Invalid group name, character \'>\' after \'<\' at column 4'),
+
+    'Bad group name': macro('(?<1year>\\d{4})', 'Invalid group name',
+      'Invalid group name, character \'1\' after \'<\' at column 4'),
+
+    'Unclosed group name': macro('(?<foo\\d{4})', 'Unclosed capture group name',
+      'Unclosed capture group name, expected \'>\', found \'\\\' at column 7'),
 
     'Bad custom character set': macro('[abc', 'Unterminated character class',
       'Unterminated character class'),

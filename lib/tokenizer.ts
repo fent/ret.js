@@ -12,7 +12,7 @@ const captureGroupFirstChar = /^[a-zA-Z_$]$/i;
 /**
  * Valid characters for capture group names.
  */
-const captureGroupChars = /^[a-zA-Z0-9_]$/i;
+const captureGroupChars = /^[a-zA-Z0-9_$]$/i;
 
 const digit = /\d/;
 

@@ -84,7 +84,7 @@ export const tokenizer = (regexpStr: string): Root => {
             if (/\d/.test(c)) {
               let digits = c;
 
-              while (/\d/.test(str[i])) {
+              while (i < str.length && /\d/.test(str[i])) {
                 digits += str[i++];
               }
 

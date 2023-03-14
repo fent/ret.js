@@ -5,6 +5,18 @@ import * as sets from './sets';
 type ReferenceQueue = { reference: (Reference | Char), stack: Token[], index: number }[];
 
 /**
+ * Valid opening characters for capture group names.
+ */
+const captureGroupFirstChar = /^[a-zA-Z_$]$/i;
+
+/**
+ * Valid characters for capture group names.
+ */
+const captureGroupChars = /^[a-zA-Z0-9_]$/i;
+
+const digit = /\d/;
+
+/**
  * Tokenizes a regular expression (that is currently a string)
  * @param {string} regexpStr String of regular expression to be tokenized
  *
@@ -74,10 +86,10 @@ export const tokenizer = (regexpStr: string): Root => {
           default:
             // Check if c is integer.
             // In which case it's a reference.
-            if (/\d/.test(c)) {
+            if (digit.test(c)) {
               let digits = c;
 
-              while (/\d/.test(str[i])) {
+              while (digit.test(str[i])) {
                 digits += str[i++];
               }
 
@@ -162,19 +174,19 @@ export const tokenizer = (regexpStr: string): Root => {
           } else if (c === '<') {
             let name = '';
 
-            if ((/^[a-z]$/i).test(str[i])) {
+            if (captureGroupFirstChar.test(str[i])) {
               name += str[i];
               i++;
             } else {
               throw new SyntaxError(
                 `Invalid regular expression: /${
                   regexpStr
-                }/: Invalid group name, character '${str[i]}'` +
+                }/: Invalid capture group name, character '${str[i]}'` +
                 ` after '<' at column ${i + 1}`,
               );
             }
 
-            while (i < str.length && (/^[a-z0-9]$/i).test(str[i])) {
+            while (i < str.length && captureGroupChars.test(str[i])) {
               name += str[i];
               i++;
             }
@@ -183,7 +195,7 @@ export const tokenizer = (regexpStr: string): Root => {
               throw new SyntaxError(
                 `Invalid regular expression: /${
                   regexpStr
-                }/: Invalid group name, character '${str[i]}'` +
+                }/: Invalid capture group name, character '${str[i]}'` +
                 ` after '<' at column ${i + 1}`,
               );
             }

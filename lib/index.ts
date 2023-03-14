@@ -1,3 +1,4 @@
+/* istanbul ignore file */
 import { types } from './types';
 export * from './tokenizer';
 export * from './reconstruct';

@@ -85,5 +85,9 @@ vows.describe('Regexp Tokenizer Errors')
 
     'Bad custom character set': macro('[abc', 'Unterminated character class',
       'Unterminated character class'),
+
+    'End of pattern': {
+      Backslash: macro('abc\\', 'Invalid Regular Expression', '\\ at end of pattern'),
+    },
   })
   .export(module);

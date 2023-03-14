@@ -50,6 +50,13 @@ export const tokenizer = (regexpStr: string): Root => {
     switch (c = str[i++]) {
       // Handle escaped characters, inclues a few sets.
       case '\\':
+        if (i === str.length) {
+          throw new SyntaxError(
+            `Invalid regular expression: /${
+              regexpStr
+            }/: \\ at end of pattern`,
+          );
+        }
         switch (c = str[i++]) {
           case 'b':
             last.push({ type: types.POSITION, value: 'b' });
@@ -89,7 +96,7 @@ export const tokenizer = (regexpStr: string): Root => {
             if (digit.test(c)) {
               let digits = c;
 
-              while (digit.test(str[i])) {
+              while (i < str.length && digit.test(str[i])) {
                 digits += str[i++];
               }
 

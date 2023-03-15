@@ -325,7 +325,7 @@ vows.describe('Regexp Tokenizer')
       },
 
       'with name': {
-        topic: ret('(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})'),
+        topic: ret('(?<year>\\d{4})-(?<month>\\d{2})-(?<day>\\d{2})'),
 
         'parse as groups': t => {
           assert.deepEqual(t, {
@@ -333,28 +333,28 @@ vows.describe('Regexp Tokenizer')
             stack: [
               {
                 type: types.GROUP,
-                stack: [ { type: types.REPETITION, min: 4, max: 4, value: char('d') } ],
+                stack: [{ type: types.REPETITION, min: 4, max: 4, value: sets.ints() }],
                 remember: false,
-                name: 'year'
+                name: 'year',
               },
               char('-'),
               {
                 type: types.GROUP,
-                stack: [ { type: types.REPETITION, min: 2, max: 2, value: char('d') } ],
+                stack: [{ type: types.REPETITION, min: 2, max: 2, value: sets.ints() }],
                 remember: false,
-                name: 'month'
+                name: 'month',
               },
               char('-'),
               {
                 type: types.GROUP,
-                stack: [ { type: types.REPETITION, min: 2, max: 2, value: char('d') } ],
+                stack: [{ type: types.REPETITION, min: 2, max: 2, value: sets.ints() }],
                 remember: false,
-                name: 'day'
-              }
-            ]
+                name: 'day',
+              },
+            ],
           });
-        }
-      }
+        },
+      },
     },
 
 

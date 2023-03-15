@@ -88,6 +88,8 @@ vows.describe('Regexp Tokenizer Errors')
 
     'End of pattern': {
       Backslash: macro('abc\\', 'Invalid Regular Expression', '\\ at end of pattern'),
+      Groups: macro('(?', 'Invalid Regular Expression', "Invalid group, character 'undefined' after '?' at column 2"),
+      Groups2: macro('(?=', 'Invalid Regular Expression', 'Unterminated group'),
     },
   })
   .export(module);

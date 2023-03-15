@@ -154,7 +154,7 @@ export const tokenizer = (regexpStr: string): Root => {
           remember: true,
         };
 
-        // If if this is a special kind of group.
+        // If this is a special kind of group.
         if (str[i] === '?') {
           c = str[i + 1];
           i += 2;
@@ -162,11 +162,15 @@ export const tokenizer = (regexpStr: string): Root => {
           // Match if followed by.
           if (c === '=') {
             group.followedBy = true;
+            group.remember = false;
 
           // Match if not followed by.
           } else if (c === '!') {
             group.notFollowedBy = true;
-          } else if (c !== ':') {
+            group.remember = false;
+          } else if (c === ':') {
+            group.remember = false;
+          } else {
             throw new SyntaxError(
               `Invalid regular expression: /${
                 regexpStr
@@ -174,8 +178,6 @@ export const tokenizer = (regexpStr: string): Root => {
               ` after '?' at column ${i - 1}`,
             );
           }
-
-          group.remember = false;
         } else {
           groupCount += 1;
         }

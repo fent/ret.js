@@ -323,6 +323,38 @@ vows.describe('Regexp Tokenizer')
           });
         },
       },
+
+      'with name': {
+        topic: ret('(?<year>\\d{4})-(?<month>\\d{2})-(?<day>\\d{2})'),
+
+        'parse as groups': t => {
+          assert.deepEqual(t, {
+            type: types.ROOT,
+            stack: [
+              {
+                type: types.GROUP,
+                stack: [{ type: types.REPETITION, min: 4, max: 4, value: sets.ints() }],
+                remember: true,
+                name: 'year',
+              },
+              char('-'),
+              {
+                type: types.GROUP,
+                stack: [{ type: types.REPETITION, min: 2, max: 2, value: sets.ints() }],
+                remember: true,
+                name: 'month',
+              },
+              char('-'),
+              {
+                type: types.GROUP,
+                stack: [{ type: types.REPETITION, min: 2, max: 2, value: sets.ints() }],
+                remember: true,
+                name: 'day',
+              },
+            ],
+          });
+        },
+      },
     },
 
 

@@ -36,10 +36,11 @@ export const reconstruct = (token: Tokens): string => {
     case types.GROUP: {
       // Check token.remember
       const prefix =
-        token.remember ? '' :
-          token.followedBy ? '?=' :
-            token.notFollowedBy ? '?!' :
-              '?:';
+        token.name ? `?<${token.name}>` :
+          token.remember ? '' :
+            token.followedBy ? '?=' :
+              token.notFollowedBy ? '?!' :
+                '?:';
       return `(${prefix}${createAlternate(token)})`;
     }
     case types.REPETITION: {

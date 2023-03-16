@@ -5,6 +5,18 @@ import * as sets from './sets';
 type ReferenceQueue = { reference: (Reference | Char), stack: Token[], index: number }[];
 
 /**
+ * Valid opening characters for capture group names.
+ */
+const captureGroupFirstChar = /^[a-zA-Z_$]$/i;
+
+/**
+ * Valid characters for capture group names.
+ */
+const captureGroupChars = /^[a-zA-Z0-9_$]$/i;
+
+const digit = /\d/;
+
+/**
  * Tokenizes a regular expression (that is currently a string)
  * @param {string} regexpStr String of regular expression to be tokenized
  *
@@ -81,10 +93,10 @@ export const tokenizer = (regexpStr: string): Root => {
           default:
             // Check if c is integer.
             // In which case it's a reference.
-            if (/\d/.test(c)) {
+            if (digit.test(c)) {
               let digits = c;
 
-              while (i < str.length && /\d/.test(str[i])) {
+              while (i < str.length && digit.test(str[i])) {
                 digits += str[i++];
               }
 
@@ -168,6 +180,46 @@ export const tokenizer = (regexpStr: string): Root => {
           } else if (c === '!') {
             group.notFollowedBy = true;
             group.remember = false;
+          } else if (c === '<') {
+            let name = '';
+
+            if (captureGroupFirstChar.test(str[i])) {
+              name += str[i];
+              i++;
+            } else {
+              throw new SyntaxError(
+                `Invalid regular expression: /${
+                  regexpStr
+                }/: Invalid capture group name, character '${str[i]}'` +
+                ` after '<' at column ${i + 1}`,
+              );
+            }
+
+            while (i < str.length && captureGroupChars.test(str[i])) {
+              name += str[i];
+              i++;
+            }
+
+            if (!name) {
+              throw new SyntaxError(
+                `Invalid regular expression: /${
+                  regexpStr
+                }/: Invalid capture group name, character '${str[i]}'` +
+                ` after '<' at column ${i + 1}`,
+              );
+            }
+
+            if (str[i] !== '>') {
+              throw new SyntaxError(
+                `Invalid regular expression: /${
+                  regexpStr
+                }/: Unclosed capture group name, expected '>', found` +
+                ` '${str[i]}' at column ${i + 1}`,
+              );
+            }
+
+            group.name = name;
+            i++;
           } else if (c === ':') {
             group.remember = false;
           } else {

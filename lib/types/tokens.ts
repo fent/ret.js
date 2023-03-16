@@ -17,6 +17,7 @@ export type Group = Base<types.GROUP, {
   followedBy?: boolean;
   notFollowedBy?: boolean;
   lookBehind?: boolean;
+  name?: string;
 }>
 
 export type Set = Base<types.SET, {

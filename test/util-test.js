@@ -1,114 +1,107 @@
-const vows = require('vows');
 const assert = require('assert');
 const util = require('../dist/util');
 const types = require('../dist').types;
 const sets = require('../dist/sets');
 
+describe('strToChars', () => {
+  it('Convert escaped chars in str to their unescaped versions', () => {
+    const str = util.strToChars(
+      '\\v \\xFF hellow \\u00A3 \\50 \\u0028 there \\cB \\n \\w [\\b]',
+    );
+    assert.equal(str, '\v \xFF hellow \u00A3 \\50 \\( there  \n \\w \u0008');
+  });
 
-vows.describe('strToChars')
-  .addBatch({
-    'Convert escaped chars in str to their unescaped versions': {
-      topic: () => util.strToChars(
-        '\\v \\xFF hellow \\u00A3 \\50 \\u0028 there \\cB \\n \\w [\\b]'),
+  it('Escaped chars in regex source remain espaced', () => {
+    const str = util.strToChars(
+      /\\xFF hellow \\u00A3 \\50 \\u0028 there \\cB \\n \\w/.source,
+    );
+    assert.equal(
+      str,
+      '\\\\xFF hellow \\\\u00A3 \\\\50 \\\\u0028 there \\\\cB \\\\n \\\\w',
+    );
+  });
+});
 
-      'Returned string has converted characters': str => {
-        assert.equal(str,
-          '\v \xFF hellow \u00A3 \\50 \\( there  \n \\w \u0008');
-      },
-    },
-    'Escaped chars in regex source remain espaced': {
-      topic: () => util.strToChars(
-        /\\xFF hellow \\u00A3 \\50 \\u0028 there \\cB \\n \\w/.source),
+describe('tokenizeClass', () => {
+  describe('Class tokens', () => {
+    const [tokens, pos] = util.tokenizeClass(
+      '\\w\\d$\\s\\]\\B\\W\\D\\S.+-] will ignore',
+    );
 
-      'Returned string has escaped characters': str => {
-        assert.equal(str,
-          '\\\\xFF hellow \\\\u00A3 \\\\50 \\\\u0028 there \\\\cB \\\\n \\\\w');
-      },
-    },
-  })
-  .export(module);
+    it('Get a words set token', () => {
+      assert.ok(Array.isArray(tokens));
+      assert.deepEqual(tokens[0], sets.words());
+    });
 
+    it('Get an integers set token', () => {
+      assert.ok(Array.isArray(tokens));
+      assert.deepEqual(tokens[1], sets.ints());
+    });
 
-vows.describe('tokenizeClass')
-  .addBatch({
-    'Class tokens': {
-      topic: util.tokenizeClass('\\w\\d$\\s\\]\\B\\W\\D\\S.+-] will ignore'),
+    it('Get some char tokens', () => {
+      assert.ok(Array.isArray(tokens));
+      assert.deepEqual(tokens[2], { type: types.CHAR, value: 36 });
+      assert.deepEqual(tokens[4], { type: types.CHAR, value: 93 });
+      assert.deepEqual(tokens[5], { type: types.CHAR, value: 66 });
+    });
 
-      'Get a words set token': t => {
-        assert.isArray(t[0]);
-        assert.deepEqual(t[0][0], sets.words());
-      },
+    it('Get a whitespace set token', () => {
+      assert.ok(Array.isArray(tokens));
+      assert.deepEqual(tokens[3], sets.whitespace());
+    });
 
-      'Get an integers set token': t => {
-        assert.isArray(t[0]);
-        assert.deepEqual(t[0][1], sets.ints());
-      },
+    it('Get negated sets', () => {
+      assert.ok(Array.isArray(tokens));
+      assert.deepEqual(tokens[6], sets.notWords());
+      assert.deepEqual(tokens[7], sets.notInts());
+      assert.deepEqual(tokens[8], sets.notWhitespace());
+    });
 
-      'Get some char tokens': t => {
-        assert.isArray(t[0]);
-        assert.deepEqual(t[0][2], { type: types.CHAR, value: 36 });
-        assert.deepEqual(t[0][4], { type: types.CHAR, value: 93 });
-        assert.deepEqual(t[0][5], { type: types.CHAR, value: 66 });
-      },
+    it('Get correct char tokens at end of set', () => {
+      assert.ok(Array.isArray(tokens));
+      assert.deepEqual(tokens[9], { type: types.CHAR, value: 46 });
+      assert.deepEqual(tokens[10], { type: types.CHAR, value: 43 });
+      assert.deepEqual(tokens[11], { type: types.CHAR, value: 45 });
+    });
 
-      'Get a whitespace set token': t => {
-        assert.isArray(t[0]);
-        assert.deepEqual(t[0][3], sets.whitespace());
-      },
+    it('Get correct position of closing brace', () => {
+      assert.ok(typeof pos === 'number');
+      assert.equal(pos, 21);
+    });
+  });
 
-      'Get negated sets': t => {
-        assert.isArray(t[0]);
-        assert.deepEqual(t[0][6], sets.notWords());
-        assert.deepEqual(t[0][7], sets.notInts());
-        assert.deepEqual(t[0][8], sets.notWhitespace());
-      },
+  describe('Ranges', () => {
+    const [tokens] = util.tokenizeClass('a-z0-9]');
 
-      'Get correct char tokens at end of set': t => {
-        assert.isArray(t[0]);
-        assert.deepEqual(t[0][9], { type: types.CHAR, value: 46 });
-        assert.deepEqual(t[0][10], { type: types.CHAR, value: 43 });
-        assert.deepEqual(t[0][11], { type: types.CHAR, value: 45 });
-      },
+    it('Get alphabetic range', () => {
+      assert.ok(Array.isArray(tokens));
+      assert.deepEqual(tokens[0], {
+        type: types.RANGE,
+        from: 97,
+        to: 122,
+      });
+    });
 
-      'Get correct position of closing brace': t => {
-        assert.isNumber(t[1]);
-        assert.equal(t[1], 21);
-      },
-    },
+    it('Get numeric range', () => {
+      assert.ok(Array.isArray(tokens));
+      assert.deepEqual(tokens[1], {
+        type: types.RANGE,
+        from: 48,
+        to: 57,
+      });
+    });
+  });
 
-    Ranges: {
-      topic: util.tokenizeClass('a-z0-9]'),
+  describe('Ranges with escaped characters', () => {
+    const [tokens] = util.tokenizeClass('\\\\-~]');
 
-      'Get alphabetic range': t => {
-        assert.isArray(t[0]);
-        assert.deepEqual(t[0][0], {
-          type: types.RANGE,
-          from: 97,
-          to: 122,
-        });
-      },
-
-      'Get numeric range': t => {
-        assert.isArray(t[0]);
-        assert.deepEqual(t[0][1], {
-          type: types.RANGE,
-          from: 48,
-          to: 57,
-        });
-      },
-    },
-
-    'Ranges with escaped characters': {
-      topic: util.tokenizeClass('\\\\-~]'),
-
-      'Get escaped backslash range': t => {
-        assert.isArray(t[0]);
-        assert.deepEqual(t[0][0], {
-          type: types.RANGE,
-          from: 92,
-          to: 126,
-        });
-      },
-    },
-  })
-  .export(module);
+    it('Get escaped backslash range', () => {
+      assert.ok(Array.isArray(tokens));
+      assert.deepEqual(tokens[0], {
+        type: types.RANGE,
+        from: 92,
+        to: 126,
+      });
+    });
+  });
+});

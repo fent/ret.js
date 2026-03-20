@@ -208,6 +208,21 @@ The following latest JavaScript additions are not supported yet:
 }
 ```
 
+# Benchmarking
+
+Run the benchmark suite against the compiled build with:
+
+```sh
+npm run bench
+```
+
+The benchmark covers representative tokenizer, reconstruct, and roundtrip workloads.
+You can narrow it to one suite or run longer samples:
+
+```sh
+npm run bench -- --suite tokenizer --min-ms 750
+```
+
 `/[abc]/`
 
 ```js

@@ -2,13 +2,11 @@ import { Group, types, Root, Token, Reference, Char, Position, SetTokens, Set as
 import * as sets from './sets';
 
 type ReferenceQueue = { reference: (Reference | Char), stack: Token[], index: number }[];
-type DecodedEscape = { value: number, nextIndex: number } | null;
-type ParsedNumber = { value: number, nextIndex: number } | null;
+type ReadResult<T> = { result: T, nextIndex: number };
+type MaybeReadResult<T> = ReadResult<T> | null;
 type EscapedToken = Char | Position | Reference | SetToken;
-type EscapedTokenResult = { token: EscapedToken, nextIndex: number };
 type ClassToken = Char | SetToken;
-type ClassTokenResult = { token: ClassToken, nextIndex: number };
-type RepetitionBounds = { min: number, max: number, nextIndex: number } | null;
+type RepetitionBounds = { min: number, max: number };
 
 /**
  * Valid opening characters for capture group names.
@@ -29,7 +27,10 @@ const isUpperHexCode = (charCode: number) =>
 
 const hexValue = (charCode: number) => charCode <= 57 ? charCode - 48 : charCode - 55;
 
-const readNumber = (str: string, index: number): ParsedNumber => {
+const syntaxError = (regexpStr: string, message: string) =>
+  new SyntaxError(`Invalid regular expression: /${regexpStr}/: ${message}`);
+
+const readNumber = (str: string, index: number): MaybeReadResult<number> => {
   if (!isDigitCode(str.charCodeAt(index))) {
     return null;
   }
@@ -41,72 +42,56 @@ const readNumber = (str: string, index: number): ParsedNumber => {
     nextIndex++;
   }
 
-  return { value, nextIndex };
+  return { result: value, nextIndex };
 };
 
-const readEscapedChar = (str: string, slashIndex: number): DecodedEscape => {
-  const escapeType = str[slashIndex + 1];
+const readHex = (str: string, index: number, length: number): MaybeReadResult<number> => {
+  if (index + length > str.length) {
+    return null;
+  }
 
-  switch (escapeType) {
-    case 'u': {
-      if (slashIndex + 5 >= str.length) {
-        return null;
-      }
-
-      let value = 0;
-      for (let index = slashIndex + 2; index <= slashIndex + 5; index++) {
-        const charCode = str.charCodeAt(index);
-        if (!isUpperHexCode(charCode)) {
-          return null;
-        }
-        value = value * 16 + hexValue(charCode);
-      }
-      return { value, nextIndex: slashIndex + 6 };
+  let value = 0;
+  for (let i = index; i < index + length; i++) {
+    const charCode = str.charCodeAt(i);
+    if (!isUpperHexCode(charCode)) {
+      return null;
     }
+    value = value * 16 + hexValue(charCode);
+  }
 
-    case 'x': {
-      if (slashIndex + 3 >= str.length) {
-        return null;
-      }
+  return { result: value, nextIndex: index + length };
+};
 
-      let value = 0;
-      for (let index = slashIndex + 2; index <= slashIndex + 3; index++) {
-        const charCode = str.charCodeAt(index);
-        if (!isUpperHexCode(charCode)) {
-          return null;
-        }
-        value = value * 16 + hexValue(charCode);
-      }
-      return { value, nextIndex: slashIndex + 4 };
-    }
+const readEscapedChar = (str: string, slashIndex: number): MaybeReadResult<number> => {
+  switch (str[slashIndex + 1]) {
+    case 'u':
+      return readHex(str, slashIndex + 2, 4);
+
+    case 'x':
+      return readHex(str, slashIndex + 2, 2);
 
     case 'c': {
-      const ctrlChar = str[slashIndex + 2];
-      if (!ctrlChar) {
-        return null;
-      }
-
-      const value = CTRL.indexOf(ctrlChar);
-      return value === -1 ? null : { value, nextIndex: slashIndex + 3 };
+      const value = CTRL.indexOf(str[slashIndex + 2]);
+      return value === -1 ? null : { result: value, nextIndex: slashIndex + 3 };
     }
 
     case '0':
-      return { value: 0, nextIndex: slashIndex + 2 };
+      return { result: 0, nextIndex: slashIndex + 2 };
 
     case 't':
-      return { value: 9, nextIndex: slashIndex + 2 };
+      return { result: 9, nextIndex: slashIndex + 2 };
 
     case 'n':
-      return { value: 10, nextIndex: slashIndex + 2 };
+      return { result: 10, nextIndex: slashIndex + 2 };
 
     case 'v':
-      return { value: 11, nextIndex: slashIndex + 2 };
+      return { result: 11, nextIndex: slashIndex + 2 };
 
     case 'f':
-      return { value: 12, nextIndex: slashIndex + 2 };
+      return { result: 12, nextIndex: slashIndex + 2 };
 
     case 'r':
-      return { value: 13, nextIndex: slashIndex + 2 };
+      return { result: 13, nextIndex: slashIndex + 2 };
 
     default:
       return null;
@@ -132,22 +117,24 @@ const readSet = (escapedType: string): SetToken | null => {
   }
 };
 
-const readEscapedToken = (str: string, slashIndex: number, inClass: boolean): EscapedTokenResult => {
+function readEscapedToken(str: string, slashIndex: number, inClass: true): ReadResult<ClassToken>;
+function readEscapedToken(str: string, slashIndex: number, inClass: false): ReadResult<EscapedToken>;
+function readEscapedToken(str: string, slashIndex: number, inClass: boolean): ReadResult<EscapedToken> {
   const escapedType = str[slashIndex + 1];
   const setToken = readSet(escapedType);
   if (setToken) {
-    return { token: setToken, nextIndex: slashIndex + 2 };
+    return { result: setToken, nextIndex: slashIndex + 2 };
   }
 
   if (inClass) {
     // Character classes treat \b as backspace instead of a word boundary.
     if (escapedType === 'b') {
-      return { token: { type: types.CHAR, value: 8 }, nextIndex: slashIndex + 2 };
+      return { result: { type: types.CHAR, value: 8 }, nextIndex: slashIndex + 2 };
     }
   } else {
     if (escapedType === 'b' || escapedType === 'B') {
       return {
-        token: { type: types.POSITION, value: escapedType },
+        result: { type: types.POSITION, value: escapedType },
         nextIndex: slashIndex + 2,
       };
     }
@@ -158,7 +145,7 @@ const readEscapedToken = (str: string, slashIndex: number, inClass: boolean): Es
       const reference = readNumber(str, slashIndex + 1);
       if (reference) {
         return {
-          token: { type: types.REFERENCE, value: reference.value },
+          result: { type: types.REFERENCE, value: reference.result },
           nextIndex: reference.nextIndex,
         };
       }
@@ -167,21 +154,21 @@ const readEscapedToken = (str: string, slashIndex: number, inClass: boolean): Es
 
   const decoded = readEscapedChar(str, slashIndex);
   return {
-    token: {
+    result: {
       type: types.CHAR,
-      value: decoded ? decoded.value : str.charCodeAt(slashIndex + 1),
+      value: decoded ? decoded.result : str.charCodeAt(slashIndex + 1),
     },
     nextIndex: decoded ? decoded.nextIndex : slashIndex + 2,
   };
-};
+}
 
-const readClassToken = (str: string, index: number): ClassTokenResult => {
+const readClassToken = (str: string, index: number): ReadResult<ClassToken> => {
   if (str[index] === '\\') {
-    return readEscapedToken(str, index, true) as ClassTokenResult;
+    return readEscapedToken(str, index, true);
   }
 
   return {
-    token: { type: types.CHAR, value: str.charCodeAt(index) },
+    result: { type: types.CHAR, value: str.charCodeAt(index) },
     nextIndex: index + 1,
   };
 };
@@ -200,41 +187,40 @@ const tokenizeClassAt = (str: string, index: number, regexpStr: string): [SetTok
     }
 
     const first = readClassToken(str, i);
-    const nextChar = str[first.nextIndex];
     if (
-      first.token.type === types.CHAR &&
-      nextChar === '-' &&
+      first.result.type === types.CHAR &&
+      str[first.nextIndex] === '-' &&
       first.nextIndex + 1 < str.length &&
       str[first.nextIndex + 1] !== ']'
     ) {
       // Only char-to-char pairs become ranges; predefined sets keep the dash literal.
       const second = readClassToken(str, first.nextIndex + 1);
-      if (second.token.type === types.CHAR) {
+      if (second.result.type === types.CHAR) {
         tokens.push({
           type: types.RANGE,
-          from: first.token.value,
-          to: second.token.value,
+          from: first.result.value,
+          to: second.result.value,
         });
         i = second.nextIndex;
         continue;
       }
     }
 
-    tokens.push(first.token);
+    tokens.push(first.result);
     i = first.nextIndex;
   }
 
-  throw new SyntaxError(`Invalid regular expression: /${regexpStr}/: Unterminated character class`);
+  throw syntaxError(regexpStr, 'Unterminated character class');
 };
 
-const readRepetition = (str: string, index: number): RepetitionBounds => {
+const readRepetition = (str: string, index: number): MaybeReadResult<RepetitionBounds> => {
   const min = readNumber(str, index);
   if (!min) {
     return null;
   }
 
   if (str[min.nextIndex] === '}') {
-    return { min: min.value, max: min.value, nextIndex: min.nextIndex + 1 };
+    return { result: { min: min.result, max: min.result }, nextIndex: min.nextIndex + 1 };
   }
 
   if (str[min.nextIndex] !== ',') {
@@ -243,7 +229,7 @@ const readRepetition = (str: string, index: number): RepetitionBounds => {
 
   // `{n,}` is open-ended, while `{n,m}` requires a second parsed integer.
   if (str[min.nextIndex + 1] === '}') {
-    return { min: min.value, max: Infinity, nextIndex: min.nextIndex + 2 };
+    return { result: { min: min.result, max: Infinity }, nextIndex: min.nextIndex + 2 };
   }
 
   const max = readNumber(str, min.nextIndex + 1);
@@ -251,7 +237,30 @@ const readRepetition = (str: string, index: number): RepetitionBounds => {
     return null;
   }
 
-  return { min: min.value, max: max.value, nextIndex: max.nextIndex + 1 };
+  return { result: { min: min.result, max: max.result }, nextIndex: max.nextIndex + 1 };
+};
+
+const readGroupName = (str: string, index: number, regexpStr: string): ReadResult<string> => {
+  if (!captureGroupFirstChar.test(str[index])) {
+    throw syntaxError(
+      regexpStr,
+      `Invalid capture group name, character '${str[index]}' after '<' at column ${index + 1}`,
+    );
+  }
+
+  let name = str[index++];
+  while (index < str.length && captureGroupChars.test(str[index])) {
+    name += str[index++];
+  }
+
+  if (str[index] !== '>') {
+    throw syntaxError(
+      regexpStr,
+      `Unclosed capture group name, expected '>', found '${str[index]}' at column ${index + 1}`,
+    );
+  }
+
+  return { result: name, nextIndex: index + 1 };
 };
 
 /**
@@ -272,12 +281,21 @@ export const tokenizer = (regexpStr: string): Root => {
   let referenceQueue: ReferenceQueue = [];
   let groupCount = 0;
 
-  const repeatErr = (col: number) => {
-    throw new SyntaxError(
-      `Invalid regular expression: /${
-        regexpStr
-      }/: Nothing to repeat at column ${col - 1}`,
-    );
+  const repeatErr = (col: number): never => {
+    throw syntaxError(regexpStr, `Nothing to repeat at column ${col - 1}`);
+  };
+
+  const pushRepetition = (min: number, max: number, col: number) => {
+    if (last.length === 0) {
+      repeatErr(col);
+    }
+
+    last.push({
+      type: types.REPETITION,
+      min,
+      max,
+      value: last.pop()!,
+    });
   };
 
   const str = regexpStr;
@@ -288,16 +306,12 @@ export const tokenizer = (regexpStr: string): Root => {
       // Handle escaped characters, inclues a few sets.
       case '\\': {
         if (i === str.length) {
-          throw new SyntaxError(
-            `Invalid regular expression: /${
-              regexpStr
-            }/: \\ at end of pattern`,
-          );
+          throw syntaxError(regexpStr, '\\ at end of pattern');
         }
         const escaped = readEscapedToken(str, i - 1, false);
-        last.push(escaped.token);
-        if (escaped.token.type === types.REFERENCE) {
-          referenceQueue.push({ reference: escaped.token, stack: last, index: last.length - 1 });
+        last.push(escaped.result);
+        if (escaped.result.type === types.REFERENCE) {
+          referenceQueue.push({ reference: escaped.result, stack: last, index: last.length - 1 });
         }
         i = escaped.nextIndex;
 
@@ -307,27 +321,19 @@ export const tokenizer = (regexpStr: string): Root => {
 
       // Positionals.
       case '^':
-        last.push({ type: types.POSITION, value: '^' });
-        break;
-
       case '$':
-        last.push({ type: types.POSITION, value: '$' });
+        last.push({ type: types.POSITION, value: c });
         break;
 
 
       // Handle custom sets.
       case '[': {
         // Check if this class is 'anti' i.e. [^abc].
-        let not;
-        if (str[i] === '^') {
-          not = true;
-          i++;
-        } else {
-          not = false;
-        }
+        const not = str[i] === '^';
+        if (not) i++;
 
         // Get all the characters in class.
-        let classTokens = tokenizeClassAt(str, i, regexpStr);
+        const classTokens = tokenizeClassAt(str, i, regexpStr);
         i = classTokens[1];
         last.push({
           type: types.SET,
@@ -369,54 +375,13 @@ export const tokenizer = (regexpStr: string): Root => {
             group.notFollowedBy = true;
             group.remember = false;
           } else if (c === '<') {
-            let name = '';
-
-            if (captureGroupFirstChar.test(str[i])) {
-              name += str[i];
-              i++;
-            } else {
-              throw new SyntaxError(
-                `Invalid regular expression: /${
-                  regexpStr
-                }/: Invalid capture group name, character '${str[i]}'` +
-                ` after '<' at column ${i + 1}`,
-              );
-            }
-
-            while (i < str.length && captureGroupChars.test(str[i])) {
-              name += str[i];
-              i++;
-            }
-
-            if (!name) {
-              throw new SyntaxError(
-                `Invalid regular expression: /${
-                  regexpStr
-                }/: Invalid capture group name, character '${str[i]}'` +
-                ` after '<' at column ${i + 1}`,
-              );
-            }
-
-            if (str[i] !== '>') {
-              throw new SyntaxError(
-                `Invalid regular expression: /${
-                  regexpStr
-                }/: Unclosed capture group name, expected '>', found` +
-                ` '${str[i]}' at column ${i + 1}`,
-              );
-            }
-
-            group.name = name;
-            i++;
+            const name = readGroupName(str, i, regexpStr);
+            group.name = name.result;
+            i = name.nextIndex;
           } else if (c === ':') {
             group.remember = false;
           } else {
-            throw new SyntaxError(
-              `Invalid regular expression: /${
-                regexpStr
-              }/: Invalid group, character '${c}'` +
-              ` after '?' at column ${i - 1}`,
-            );
+            throw syntaxError(regexpStr, `Invalid group, character '${c}' after '?' at column ${i - 1}`);
           }
         } else {
           groupCount += 1;
@@ -439,11 +404,7 @@ export const tokenizer = (regexpStr: string): Root => {
       // Pop group out of stack.
       case ')':
         if (groupStack.length === 0) {
-          throw new SyntaxError(
-            `Invalid regular expression: /${
-              regexpStr
-            }/: Unmatched ) at column ${i - 1}`,
-          );
+          throw syntaxError(regexpStr, `Unmatched ) at column ${i - 1}`);
         }
         lastGroup = groupStack.pop();
 
@@ -465,7 +426,7 @@ export const tokenizer = (regexpStr: string): Root => {
           delete lastGroup.stack;
         }
         // Create a new stack and add to options for rest of clause.
-        let stack: Token[] = [];
+        const stack: Token[] = [];
         lastGroup.options.push(stack);
         last = stack;
 
@@ -479,65 +440,31 @@ export const tokenizer = (regexpStr: string): Root => {
       // This design is chosen because there could be more than
       // one repetition symbols in a regex i.e. `a?+{2,3}`.
       case '{': {
-        let repetition = readRepetition(str, i);
-        if (repetition !== null) {
-          if (last.length === 0) {
-            repeatErr(i);
-          }
-          i = repetition.nextIndex;
-
-          last.push({
-            type: types.REPETITION,
-            min: repetition.min,
-            max: repetition.max,
-            value: last.pop(),
-          });
-        } else {
+        const repetition = readRepetition(str, i);
+        if (!repetition) {
           last.push({
             type: types.CHAR,
             value: 123,
           });
+          break;
         }
+
+        pushRepetition(repetition.result.min, repetition.result.max, i);
+        i = repetition.nextIndex;
 
         break;
       }
 
       case '?':
-        if (last.length === 0) {
-          repeatErr(i);
-        }
-        last.push({
-          type: types.REPETITION,
-          min: 0,
-          max: 1,
-          value: last.pop(),
-        });
+        pushRepetition(0, 1, i);
         break;
 
       case '+':
-        if (last.length === 0) {
-          repeatErr(i);
-        }
-        last.push({
-          type: types.REPETITION,
-          min: 1,
-          max: Infinity,
-          value: last.pop(),
-        });
-
+        pushRepetition(1, Infinity, i);
         break;
 
       case '*':
-        if (last.length === 0) {
-          repeatErr(i);
-        }
-        last.push({
-          type: types.REPETITION,
-          min: 0,
-          max: Infinity,
-          value: last.pop(),
-        });
-
+        pushRepetition(0, Infinity, i);
         break;
 
 
@@ -552,11 +479,7 @@ export const tokenizer = (regexpStr: string): Root => {
 
   // Check if any groups have not been closed.
   if (groupStack.length !== 0) {
-    throw new SyntaxError(
-      `Invalid regular expression: /${
-        regexpStr
-      }/: Unterminated group`,
-    );
+    throw syntaxError(regexpStr, 'Unterminated group');
   }
 
   updateReferences(referenceQueue, groupCount);

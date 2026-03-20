@@ -21,6 +21,7 @@
   "scripts": {
     "test": "nyc --extension .ts --reporter=lcov --reporter=text-summary vows -- --spec test/*-test.js",
     "build": "tsc",
+    "bench": "npm run build && node benchmark/index.js",
     "prepare": "tsc",
     "lint": "eslint ./lib ./test",
     "lint:fix": "eslint --fix ./lib ./test"

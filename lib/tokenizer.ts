@@ -1,8 +1,14 @@
-import * as util from './util';
-import { Group, types, Root, Token, Reference, Char } from './types';
+import { Group, types, Root, Token, Reference, Char, Position, SetTokens, Set as SetToken } from './types';
 import * as sets from './sets';
 
 type ReferenceQueue = { reference: (Reference | Char), stack: Token[], index: number }[];
+type DecodedEscape = { value: number, nextIndex: number } | null;
+type ParsedNumber = { value: number, nextIndex: number } | null;
+type EscapedToken = Char | Position | Reference | SetToken;
+type EscapedTokenResult = { token: EscapedToken, nextIndex: number };
+type ClassToken = Char | SetToken;
+type ClassTokenResult = { token: ClassToken, nextIndex: number };
+type RepetitionBounds = { min: number, max: number, nextIndex: number } | null;
 
 /**
  * Valid opening characters for capture group names.
@@ -14,7 +20,239 @@ const captureGroupFirstChar = /^[a-zA-Z_$]$/i;
  */
 const captureGroupChars = /^[a-zA-Z0-9_$]$/i;
 
-const digit = /\d/;
+const CTRL = '@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^ ?';
+
+const isDigitCode = (charCode: number) => charCode >= 48 && charCode <= 57;
+
+const isUpperHexCode = (charCode: number) =>
+  isDigitCode(charCode) || (charCode >= 65 && charCode <= 70);
+
+const hexValue = (charCode: number) => charCode <= 57 ? charCode - 48 : charCode - 55;
+
+const readNumber = (str: string, index: number): ParsedNumber => {
+  if (!isDigitCode(str.charCodeAt(index))) {
+    return null;
+  }
+
+  let value = 0;
+  let nextIndex = index;
+  while (nextIndex < str.length && isDigitCode(str.charCodeAt(nextIndex))) {
+    value = value * 10 + str.charCodeAt(nextIndex) - 48;
+    nextIndex++;
+  }
+
+  return { value, nextIndex };
+};
+
+const readEscapedChar = (str: string, slashIndex: number): DecodedEscape => {
+  const escapeType = str[slashIndex + 1];
+
+  switch (escapeType) {
+    case 'u': {
+      if (slashIndex + 5 >= str.length) {
+        return null;
+      }
+
+      let value = 0;
+      for (let index = slashIndex + 2; index <= slashIndex + 5; index++) {
+        const charCode = str.charCodeAt(index);
+        if (!isUpperHexCode(charCode)) {
+          return null;
+        }
+        value = value * 16 + hexValue(charCode);
+      }
+      return { value, nextIndex: slashIndex + 6 };
+    }
+
+    case 'x': {
+      if (slashIndex + 3 >= str.length) {
+        return null;
+      }
+
+      let value = 0;
+      for (let index = slashIndex + 2; index <= slashIndex + 3; index++) {
+        const charCode = str.charCodeAt(index);
+        if (!isUpperHexCode(charCode)) {
+          return null;
+        }
+        value = value * 16 + hexValue(charCode);
+      }
+      return { value, nextIndex: slashIndex + 4 };
+    }
+
+    case 'c': {
+      const ctrlChar = str[slashIndex + 2];
+      if (!ctrlChar) {
+        return null;
+      }
+
+      const value = CTRL.indexOf(ctrlChar);
+      return value === -1 ? null : { value, nextIndex: slashIndex + 3 };
+    }
+
+    case '0':
+      return { value: 0, nextIndex: slashIndex + 2 };
+
+    case 't':
+      return { value: 9, nextIndex: slashIndex + 2 };
+
+    case 'n':
+      return { value: 10, nextIndex: slashIndex + 2 };
+
+    case 'v':
+      return { value: 11, nextIndex: slashIndex + 2 };
+
+    case 'f':
+      return { value: 12, nextIndex: slashIndex + 2 };
+
+    case 'r':
+      return { value: 13, nextIndex: slashIndex + 2 };
+
+    default:
+      return null;
+  }
+};
+
+const readSet = (escapedType: string): SetToken | null => {
+  switch (escapedType) {
+    case 'w':
+      return sets.words();
+    case 'W':
+      return sets.notWords();
+    case 'd':
+      return sets.ints();
+    case 'D':
+      return sets.notInts();
+    case 's':
+      return sets.whitespace();
+    case 'S':
+      return sets.notWhitespace();
+    default:
+      return null;
+  }
+};
+
+const readEscapedToken = (str: string, slashIndex: number, inClass: boolean): EscapedTokenResult => {
+  const escapedType = str[slashIndex + 1];
+  const setToken = readSet(escapedType);
+  if (setToken) {
+    return { token: setToken, nextIndex: slashIndex + 2 };
+  }
+
+  if (inClass) {
+    // Character classes treat \b as backspace instead of a word boundary.
+    if (escapedType === 'b') {
+      return { token: { type: types.CHAR, value: 8 }, nextIndex: slashIndex + 2 };
+    }
+  } else {
+    if (escapedType === 'b' || escapedType === 'B') {
+      return {
+        token: { type: types.POSITION, value: escapedType },
+        nextIndex: slashIndex + 2,
+      };
+    }
+
+    // Outside character classes, decimal escapes are parsed as references first
+    // and only normalized to chars later if there are not enough capture groups.
+    if (escapedType !== '0') {
+      const reference = readNumber(str, slashIndex + 1);
+      if (reference) {
+        return {
+          token: { type: types.REFERENCE, value: reference.value },
+          nextIndex: reference.nextIndex,
+        };
+      }
+    }
+  }
+
+  const decoded = readEscapedChar(str, slashIndex);
+  return {
+    token: {
+      type: types.CHAR,
+      value: decoded ? decoded.value : str.charCodeAt(slashIndex + 1),
+    },
+    nextIndex: decoded ? decoded.nextIndex : slashIndex + 2,
+  };
+};
+
+const readClassToken = (str: string, index: number): ClassTokenResult => {
+  if (str[index] === '\\') {
+    return readEscapedToken(str, index, true) as ClassTokenResult;
+  }
+
+  return {
+    token: { type: types.CHAR, value: str.charCodeAt(index) },
+    nextIndex: index + 1,
+  };
+};
+
+const tokenizeClassAt = (str: string, index: number, regexpStr: string): [SetTokens, number] => {
+  const tokens: SetTokens = [];
+  let i = index;
+
+  while (i < str.length) {
+    if (str[i] === ']') {
+      return [tokens, i + 1];
+    }
+
+    if (str[i] === '\\' && i + 1 >= str.length) {
+      break;
+    }
+
+    const first = readClassToken(str, i);
+    const nextChar = str[first.nextIndex];
+    if (
+      first.token.type === types.CHAR &&
+      nextChar === '-' &&
+      first.nextIndex + 1 < str.length &&
+      str[first.nextIndex + 1] !== ']'
+    ) {
+      // Only char-to-char pairs become ranges; predefined sets keep the dash literal.
+      const second = readClassToken(str, first.nextIndex + 1);
+      if (second.token.type === types.CHAR) {
+        tokens.push({
+          type: types.RANGE,
+          from: first.token.value,
+          to: second.token.value,
+        });
+        i = second.nextIndex;
+        continue;
+      }
+    }
+
+    tokens.push(first.token);
+    i = first.nextIndex;
+  }
+
+  throw new SyntaxError(`Invalid regular expression: /${regexpStr}/: Unterminated character class`);
+};
+
+const readRepetition = (str: string, index: number): RepetitionBounds => {
+  const min = readNumber(str, index);
+  if (!min) {
+    return null;
+  }
+
+  if (str[min.nextIndex] === '}') {
+    return { min: min.value, max: min.value, nextIndex: min.nextIndex + 1 };
+  }
+
+  if (str[min.nextIndex] !== ',') {
+    return null;
+  }
+
+  // `{n,}` is open-ended, while `{n,m}` requires a second parsed integer.
+  if (str[min.nextIndex + 1] === '}') {
+    return { min: min.value, max: Infinity, nextIndex: min.nextIndex + 2 };
+  }
+
+  const max = readNumber(str, min.nextIndex + 1);
+  if (!max || str[max.nextIndex] !== '}') {
+    return null;
+  }
+
+  return { min: min.value, max: max.value, nextIndex: max.nextIndex + 1 };
+};
 
 /**
  * Tokenizes a regular expression (that is currently a string)
@@ -42,14 +280,13 @@ export const tokenizer = (regexpStr: string): Root => {
     );
   };
 
-  // Decode a few escaped characters.
-  let str = util.strToChars(regexpStr);
+  const str = regexpStr;
 
   // Iterate through each character in string.
   while (i < str.length) {
     switch (c = str[i++]) {
       // Handle escaped characters, inclues a few sets.
-      case '\\':
+      case '\\': {
         if (i === str.length) {
           throw new SyntaxError(
             `Invalid regular expression: /${
@@ -57,62 +294,15 @@ export const tokenizer = (regexpStr: string): Root => {
             }/: \\ at end of pattern`,
           );
         }
-        switch (c = str[i++]) {
-          case 'b':
-            last.push({ type: types.POSITION, value: 'b' });
-            break;
-
-          case 'B':
-            last.push({ type: types.POSITION, value: 'B' });
-            break;
-
-          case 'w':
-            last.push(sets.words());
-            break;
-
-          case 'W':
-            last.push(sets.notWords());
-            break;
-
-          case 'd':
-            last.push(sets.ints());
-            break;
-
-          case 'D':
-            last.push(sets.notInts());
-            break;
-
-          case 's':
-            last.push(sets.whitespace());
-            break;
-
-          case 'S':
-            last.push(sets.notWhitespace());
-            break;
-
-          default:
-            // Check if c is integer.
-            // In which case it's a reference.
-            if (digit.test(c)) {
-              let digits = c;
-
-              while (i < str.length && digit.test(str[i])) {
-                digits += str[i++];
-              }
-
-              let value = parseInt(digits, 10);
-              const reference: Reference = { type: types.REFERENCE, value };
-
-              last.push(reference);
-              referenceQueue.push({ reference, stack: last, index: last.length - 1 });
-
-            // Escaped character.
-            } else {
-              last.push({ type: types.CHAR, value: c.charCodeAt(0) });
-            }
+        const escaped = readEscapedToken(str, i - 1, false);
+        last.push(escaped.token);
+        if (escaped.token.type === types.REFERENCE) {
+          referenceQueue.push({ reference: escaped.token, stack: last, index: last.length - 1 });
         }
+        i = escaped.nextIndex;
 
         break;
+      }
 
 
       // Positionals.
@@ -137,10 +327,8 @@ export const tokenizer = (regexpStr: string): Root => {
         }
 
         // Get all the characters in class.
-        let classTokens = util.tokenizeClass(str.slice(i), regexpStr);
-
-        // Increase index by length of class.
-        i += classTokens[1];
+        let classTokens = tokenizeClassAt(str, i, regexpStr);
+        i = classTokens[1];
         last.push({
           type: types.SET,
           set: classTokens[0],
@@ -291,19 +479,17 @@ export const tokenizer = (regexpStr: string): Root => {
       // This design is chosen because there could be more than
       // one repetition symbols in a regex i.e. `a?+{2,3}`.
       case '{': {
-        let rs = /^(\d+)(,(\d+)?)?\}/.exec(str.slice(i)), min, max;
-        if (rs !== null) {
+        let repetition = readRepetition(str, i);
+        if (repetition !== null) {
           if (last.length === 0) {
             repeatErr(i);
           }
-          min = parseInt(rs[1], 10);
-          max = rs[2] ? rs[3] ? parseInt(rs[3], 10) : Infinity : min;
-          i += rs[0].length;
+          i = repetition.nextIndex;
 
           last.push({
             type: types.REPETITION,
-            min,
-            max,
+            min: repetition.min,
+            max: repetition.max,
             value: last.pop(),
           });
         } else {

@@ -46,7 +46,7 @@ export const strToChars = (str: string): string => {
  * @param {string} regexpStr
  * @returns {Array.<Array.<Object>, number>}
  */
-export const tokenizeClass = (str: string, regexpStr: string): [SetTokens, number] => {
+export const tokenizeClass = (str: string, regexpStr = ''): [SetTokens, number] => {
   let tokens: SetTokens = [], rs: string[] | null, c: string;
   const regexp =
   /\\(?:(w)|(d)|(s)|(W)|(D)|(S))|((?:(?:\\)(.)|([^\]\\]))-(((?:\\)])|(((?:\\)?([^\]])))))|(\])|(?:\\)?([^])/g;

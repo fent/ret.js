@@ -2,7 +2,8 @@
 
 Tokenizes strings that represent a regular expressions.
 
-![Depfu](https://img.shields.io/depfu/fent/ret.js)
+[![npm](https://img.shields.io/npm/v/ret)](https://www.npmjs.com/package/ret)
+[![Node.js CI](https://github.com/fent/ret.js/actions/workflows/nodejs.yml/badge.svg)](https://github.com/fent/ret.js/actions/workflows/nodejs.yml)
 [![codecov](https://codecov.io/gh/fent/ret.js/branch/master/graph/badge.svg)](https://codecov.io/gh/fent/ret.js)
 
 # Usage

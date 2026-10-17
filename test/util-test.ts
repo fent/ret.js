@@ -1,32 +1,23 @@
-const assert = require('assert');
-const util = require('../dist/util');
-const types = require('../dist').types;
-const sets = require('../dist/sets');
+import assert from 'assert';
+import * as util from '../lib/util';
+import { types } from '../lib';
+import * as sets from '../lib/sets';
 
 describe('strToChars', () => {
   it('Convert escaped chars in str to their unescaped versions', () => {
-    const str = util.strToChars(
-      '\\v \\xFF hellow \\u00A3 \\50 \\u0028 there \\cB \\n \\w [\\b]',
-    );
+    const str = util.strToChars('\\v \\xFF hellow \\u00A3 \\50 \\u0028 there \\cB \\n \\w [\\b]');
     assert.equal(str, '\v \xFF hellow \u00A3 \\50 \\( there  \n \\w \u0008');
   });
 
   it('Escaped chars in regex source remain espaced', () => {
-    const str = util.strToChars(
-      /\\xFF hellow \\u00A3 \\50 \\u0028 there \\cB \\n \\w/.source,
-    );
-    assert.equal(
-      str,
-      '\\\\xFF hellow \\\\u00A3 \\\\50 \\\\u0028 there \\\\cB \\\\n \\\\w',
-    );
+    const str = util.strToChars(/\\xFF hellow \\u00A3 \\50 \\u0028 there \\cB \\n \\w/.source);
+    assert.equal(str, '\\\\xFF hellow \\\\u00A3 \\\\50 \\\\u0028 there \\\\cB \\\\n \\\\w');
   });
 });
 
 describe('tokenizeClass', () => {
   describe('Class tokens', () => {
-    const [tokens, pos] = util.tokenizeClass(
-      '\\w\\d$\\s\\]\\B\\W\\D\\S.+-] will ignore',
-    );
+    const [tokens, pos] = util.tokenizeClass('\\w\\d$\\s\\]\\B\\W\\D\\S.+-] will ignore');
 
     it('Get a words set token', () => {
       assert.ok(Array.isArray(tokens));

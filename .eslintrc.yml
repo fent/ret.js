@@ -1,3 +1,4 @@
+root: true
 env:
   es6: true
   node: true
@@ -208,3 +209,12 @@ rules:
   '@typescript-eslint/ban-ts-ignore': off
   '@typescript-eslint/no-unused-vars': off
   '@typescript-eslint/no-shadow': error
+
+overrides:
+  - files:
+      - 'test/**/*.ts'
+      - 'test/**/*.js'
+    env:
+      mocha: true
+    rules:
+      max-nested-callbacks: off

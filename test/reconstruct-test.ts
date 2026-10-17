@@ -1,7 +1,8 @@
-const assert = require('assert');
-const ret = require('../dist');
-const reconstruct = require('../dist/reconstruct').reconstruct;
-const types = require('../dist/types').types;
+import assert from 'assert';
+import ret, { types } from '../lib';
+import { reconstruct as recon } from '../lib/reconstruct';
+
+const reconstruct = (token: any) => recon(token);
 
 const similarToWhitespaceSet = [
   { type: types.CHAR, value: 9 },
@@ -20,24 +21,21 @@ const similarToWhitespaceSet = [
   { type: types.CHAR, value: 12288 },
   { type: types.CHAR, value: 65279 },
 ]
-  .map((code) =>
-    code.type === types.CHAR
-      ? String.fromCharCode(code.value)
-      : `${String.fromCharCode(code.from)}-${String.fromCharCode(code.to)}`,
+  .map(code =>
+    code.type === types.CHAR ?
+      String.fromCharCode(code.value) :
+      `${String.fromCharCode(code.from)}-${String.fromCharCode(code.to)}`,
   )
   .join('');
 
-const inverseTestFactory = (regexp, expected) => {
+const inverseTestFactory = (regexp: string, expected?: string) => {
   it(`Checking ${regexp} reconstructs`, () => {
     const t = ret(regexp);
     // Make sure there are no invalid test cases
     if ('stack' in t) {
       for (const elem of t.stack) {
         const badRange =
-          elem.type === types.SET &&
-          elem.set.some(
-            (token) => token.type === types.RANGE && token.to < token.from,
-          );
+          elem.type === types.SET && elem.set.some(token => token.type === types.RANGE && token.to < token.from);
 
         assert.deepStrictEqual(badRange, false);
       }
@@ -61,7 +59,7 @@ const inverseTestFactory = (regexp, expected) => {
   });
 };
 
-const multiInverseTestFactory = (regexps) => {
+const multiInverseTestFactory = (regexps: string[]) => {
   for (const regexp of regexps) {
     inverseTestFactory(regexp);
   }
@@ -69,32 +67,10 @@ const multiInverseTestFactory = (regexps) => {
 
 describe('Regexp Reconstruction', () => {
   describe('basic (using inverse of Ret)', () => {
-    multiInverseTestFactory([
-      '',
-      'a',
-      '1',
-      '.',
-      ',',
-      'word',
-      '//',
-      '\\W',
-      '\\D',
-      '\\w\\W\\d\\D\\s\\S.',
-    ]);
+    multiInverseTestFactory(['', 'a', '1', '.', ',', 'word', '//', '\\W', '\\D', '\\w\\W\\d\\D\\s\\S.']);
   });
   describe('testing start and finish flags (using inverse of Ret)', () => {
-    multiInverseTestFactory([
-      '$',
-      '^',
-      '$a^',
-      '.^',
-      '$,',
-      '$word^',
-      '$//^',
-      '\\W^',
-      '\\D^',
-      '\\w\\W\\d\\D\\s\\S.^',
-    ]);
+    multiInverseTestFactory(['$', '^', '$a^', '.^', '$,', '$word^', '$//^', '\\W^', '\\D^', '\\w\\W\\d\\D\\s\\S.^']);
   });
   describe('testing handleing of escaped special characters', () => {
     multiInverseTestFactory([
@@ -127,48 +103,34 @@ describe('Regexp Reconstruction', () => {
     describe('No special characters', () => inverseTestFactory('walnuts'));
     describe('^ and $ in', () => inverseTestFactory('^yes$'));
     describe('\\b and \\B', () => inverseTestFactory('\\bbeginning\\B'));
-    describe('Predefined sets', () =>
-      inverseTestFactory('\\w\\W\\d\\D\\s\\S.'));
+    describe('Predefined sets', () => inverseTestFactory('\\w\\W\\d\\D\\s\\S.'));
     describe('Custom Sets', () => {
       multiInverseTestFactory(['[$!a-z123] thing [^0-9]', '[^.]', '[^test]']);
     });
-    describe('Whitespace characters', () =>
-      inverseTestFactory('[\t\r\n\u2028\u2029 ]'));
-    describe('Two sets in a row with dash in between', () =>
-      inverseTestFactory('[01]-[ab]'));
+    describe('Whitespace characters', () => inverseTestFactory('[\t\r\n\u2028\u2029 ]'));
+    describe('Two sets in a row with dash in between', () => inverseTestFactory('[01]-[ab]'));
     describe('| (Pipe)', () => {
-      multiInverseTestFactory([
-        'foo|bar|za',
-        '(foo|bar|za)',
-        '(foo|bar|za)|(^fe|fi|fo|fum)',
-      ]);
+      multiInverseTestFactory(['foo|bar|za', '(foo|bar|za)', '(foo|bar|za)|(^fe|fi|fo|fum)']);
     });
     describe('Group', () => {
-      describe('with no special characters', () =>
-        inverseTestFactory('hey (there)'));
+      describe('with no special characters', () => inverseTestFactory('hey (there)'));
       describe('that is not remembered', () => inverseTestFactory('(?:loner)'));
-      describe('matched previous clause if not followed by this', () =>
-        inverseTestFactory('what(?!ever)'));
-      describe('matched next clause', () =>
-        inverseTestFactory('hello(?= there)'));
-      describe('with subgroup', () =>
-        inverseTestFactory('a(b(c|(?:d))fg) @_@'));
-      describe('with name', () =>
-        inverseTestFactory('(?<year>\\d{4})-(?<month>\\d{2})-(?<day>\\d{2})'));
+      describe('matched previous clause if not followed by this', () => inverseTestFactory('what(?!ever)'));
+      describe('matched next clause', () => inverseTestFactory('hello(?= there)'));
+      describe('with subgroup', () => inverseTestFactory('a(b(c|(?:d))fg) @_@'));
+      describe('with name', () => inverseTestFactory('(?<year>\\d{4})-(?<month>\\d{2})-(?<day>\\d{2})'));
     });
     describe('Custom repetition with', () => {
       describe('exact amount', () => inverseTestFactory('(?:pika){2}'));
       describe('minimum amount only', () => inverseTestFactory('NO{6,}'));
-      describe('both minimum and maximum', () =>
-        inverseTestFactory('pika\\.\\.\\. chu{3,20}!{1,2}'));
-      describe('Brackets around a non-repetitional', () =>
-        inverseTestFactory('a{mustache}', 'a\\{mustache\\}'));
+      describe('both minimum and maximum', () => inverseTestFactory('pika\\.\\.\\. chu{3,20}!{1,2}'));
+      describe('Brackets around a non-repetitional', () => inverseTestFactory('a{mustache}', 'a\\{mustache\\}'));
       describe('Predefined repetitional', () => {
         describe('? (Optional)', () => inverseTestFactory('hey(?: you)?'));
         describe('+ (At least one)', () => inverseTestFactory('(no )+'));
         describe('* (Any amount)', () => inverseTestFactory('XF*D'));
       });
-      // describe('Lookarounds', () => {
+      // Describe('Lookarounds', () => {
       //   multiInverseTestFactory([
       //     '(?<=a)b',
       //     '(?<=text)',
@@ -186,12 +148,7 @@ describe('Regexp Reconstruction', () => {
       });
       describe('Reference', () => inverseTestFactory('<(\\w+)>\\w*<\\1>'));
       describe('Simplifications', () => {
-        multiInverseTestFactory([
-          '[_a-zA-Z0-9]',
-          '[0-9]',
-          '[^_a-zA-Z0-9]',
-          '[^0-9]',
-        ]);
+        multiInverseTestFactory(['[_a-zA-Z0-9]', '[0-9]', '[^_a-zA-Z0-9]', '[^0-9]']);
       });
       // Testing for https://github.com/fent/ret.js/pull/25#discussion_r533492862
       describe('Range (in set) test cases', () => {
@@ -368,7 +325,7 @@ describe('Regexp Reconstruction', () => {
             const set = {
               type: types.SET,
               not: false,
-              set: [],
+              set: [] as any[],
             };
             assert.deepStrictEqual(reconstruct(set), '[]');
           });
@@ -376,7 +333,7 @@ describe('Regexp Reconstruction', () => {
             const set = {
               type: types.SET,
               not: true,
-              set: [],
+              set: [] as any[],
             };
             assert.deepStrictEqual(reconstruct(set), '[^]');
           });
@@ -388,7 +345,7 @@ describe('Regexp Reconstruction', () => {
                 {
                   type: types.SET,
                   not: false,
-                  set: [],
+                  set: [] as any[],
                 },
               ],
             };
@@ -402,7 +359,7 @@ describe('Regexp Reconstruction', () => {
                 {
                   type: types.SET,
                   not: false,
-                  set: [],
+                  set: [] as any[],
                 },
               ],
             };
@@ -413,7 +370,7 @@ describe('Regexp Reconstruction', () => {
               type: types.SET,
               not: false,
               set: [
-                { type: types.SET, not: false, set: [] },
+                { type: types.SET, not: false, set: [] as any[] },
                 { type: types.CHAR, value: 97 },
               ],
             };
@@ -425,7 +382,7 @@ describe('Regexp Reconstruction', () => {
               not: false,
               set: [
                 { type: types.CHAR, value: 97 },
-                { type: types.SET, not: false, set: [] },
+                { type: types.SET, not: false, set: [] as any[] },
               ],
             };
             assert.deepStrictEqual(reconstruct(set), '[a]');
@@ -477,10 +434,7 @@ describe('Regexp Reconstruction', () => {
           describe('Similar to ints', () => {
             const set = [{ type: types.RANGE, from: 48, to: 56 }];
             it('Set similar to simplification works', () => {
-              assert.deepStrictEqual(
-                reconstruct({ type: types.SET, set, not: false }),
-                '[0-8]',
-              );
+              assert.deepStrictEqual(reconstruct({ type: types.SET, set, not: false }), '[0-8]');
             });
             it('Set similar to simplification works (nested)', () => {
               assert.deepStrictEqual(
@@ -493,10 +447,7 @@ describe('Regexp Reconstruction', () => {
               );
             });
             it('Negative set similar to simplification works', () => {
-              assert.deepStrictEqual(
-                reconstruct({ type: types.SET, set, not: true }),
-                '[^0-8]',
-              );
+              assert.deepStrictEqual(reconstruct({ type: types.SET, set, not: true }), '[^0-8]');
             });
           });
           describe('Similar to words', () => {
@@ -507,16 +458,10 @@ describe('Regexp Reconstruction', () => {
                 { type: types.RANGE, from: 48, to: 57 },
               ];
               it('Set simplification works', () => {
-                assert.deepStrictEqual(
-                  reconstruct({ type: types.SET, set, not: false }),
-                  '[_a-z0-9]',
-                );
+                assert.deepStrictEqual(reconstruct({ type: types.SET, set, not: false }), '[_a-z0-9]');
               });
               it('Negative set simplification works', () => {
-                assert.deepStrictEqual(
-                  reconstruct({ type: types.SET, set, not: true }),
-                  '[^_a-z0-9]',
-                );
+                assert.deepStrictEqual(reconstruct({ type: types.SET, set, not: true }), '[^_a-z0-9]');
               });
             });
           });
@@ -525,20 +470,14 @@ describe('Regexp Reconstruction', () => {
               const set = [
                 { type: types.CHAR, value: 95 },
                 { type: types.RANGE, from: 97, to: 122 },
-                { type: types.SET, not: false, set: [] },
+                { type: types.SET, not: false, set: [] as any[] },
                 { type: types.RANGE, from: 48, to: 57 },
               ];
               it('Set simplification works', () => {
-                assert.deepStrictEqual(
-                  reconstruct({ type: types.SET, set, not: false }),
-                  '[_a-z0-9]',
-                );
+                assert.deepStrictEqual(reconstruct({ type: types.SET, set, not: false }), '[_a-z0-9]');
               });
               it('Negative set simplification works', () => {
-                assert.deepStrictEqual(
-                  reconstruct({ type: types.SET, set, not: true }),
-                  '[^_a-z0-9]',
-                );
+                assert.deepStrictEqual(reconstruct({ type: types.SET, set, not: true }), '[^_a-z0-9]');
               });
             });
           });
@@ -561,16 +500,10 @@ describe('Regexp Reconstruction', () => {
               { type: types.CHAR, value: 65279 },
             ];
             it('Set simplification works', () => {
-              assert.deepStrictEqual(
-                reconstruct({ type: types.SET, set, not: false }),
-                `[${similarToWhitespaceSet}]`,
-              );
+              assert.deepStrictEqual(reconstruct({ type: types.SET, set, not: false }), `[${similarToWhitespaceSet}]`);
             });
             it('Negative set simplification works', () => {
-              assert.deepStrictEqual(
-                reconstruct({ type: types.SET, set, not: true }),
-                `[^${similarToWhitespaceSet}]`,
-              );
+              assert.deepStrictEqual(reconstruct({ type: types.SET, set, not: true }), `[^${similarToWhitespaceSet}]`);
             });
           });
         });
@@ -578,16 +511,10 @@ describe('Regexp Reconstruction', () => {
           describe('INTS', () => {
             const set = [{ type: types.RANGE, from: 48, to: 57 }];
             it('Set simplification works', () => {
-              assert.deepStrictEqual(
-                reconstruct({ type: types.SET, set, not: false }),
-                '\\d',
-              );
+              assert.deepStrictEqual(reconstruct({ type: types.SET, set, not: false }), '\\d');
             });
             it('Negative set simplification works', () => {
-              assert.deepStrictEqual(
-                reconstruct({ type: types.SET, set, not: true }),
-                '\\D',
-              );
+              assert.deepStrictEqual(reconstruct({ type: types.SET, set, not: true }), '\\D');
             });
           });
           describe('WORDS', () => {
@@ -598,16 +525,10 @@ describe('Regexp Reconstruction', () => {
               { type: types.RANGE, from: 48, to: 57 },
             ];
             it('Set simplification works', () => {
-              assert.deepStrictEqual(
-                reconstruct({ type: types.SET, set, not: false }),
-                '\\w',
-              );
+              assert.deepStrictEqual(reconstruct({ type: types.SET, set, not: false }), '\\w');
             });
             it('Negative set simplification works', () => {
-              assert.deepStrictEqual(
-                reconstruct({ type: types.SET, set, not: true }),
-                '\\W',
-              );
+              assert.deepStrictEqual(reconstruct({ type: types.SET, set, not: true }), '\\W');
             });
           });
           describe('WHITESPACE', () => {
@@ -629,16 +550,10 @@ describe('Regexp Reconstruction', () => {
               { type: types.CHAR, value: 65279 },
             ];
             it('Set simplification works', () => {
-              assert.deepStrictEqual(
-                reconstruct({ type: types.SET, set, not: false }),
-                '\\s',
-              );
+              assert.deepStrictEqual(reconstruct({ type: types.SET, set, not: false }), '\\s');
             });
             it('Negative set simplification works', () => {
-              assert.deepStrictEqual(
-                reconstruct({ type: types.SET, set, not: true }),
-                '\\S',
-              );
+              assert.deepStrictEqual(reconstruct({ type: types.SET, set, not: true }), '\\S');
             });
           });
           describe('NOTANYCHAR', () => {
@@ -649,10 +564,7 @@ describe('Regexp Reconstruction', () => {
               { type: types.CHAR, value: 8233 },
             ];
             it('Set simplification works', () => {
-              assert.deepStrictEqual(
-                reconstruct({ type: types.SET, set, not: true }),
-                '.',
-              );
+              assert.deepStrictEqual(reconstruct({ type: types.SET, set, not: true }), '.');
             });
           });
         });
@@ -660,7 +572,7 @@ describe('Regexp Reconstruction', () => {
       describe('Reconstruct error test (bad root)', () => {
         it('throws error emessage', () => {
           assert.throws(() => {
-            reconstruct({ type: ret.types.ROOT });
+            reconstruct({ type: types.ROOT });
           }, /options or stack must be Root or Group token/);
         });
       });
@@ -686,4 +598,3 @@ describe('Regexp Reconstruction', () => {
     });
   });
 });
-

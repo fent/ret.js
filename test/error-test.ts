@@ -1,8 +1,8 @@
-const assert = require('assert');
-const ret = require('../dist');
+import assert from 'assert';
+import ret from '../lib';
 
 describe('Regexp Tokenizer Errors', () => {
-  const testThrow = (regexp, message) => {
+  const testThrow = (regexp: string, message: string) => {
     const expectedMessage = `Invalid regular expression: /${regexp}/: ${message}`;
     assert.throws(
       () => {
@@ -39,38 +39,23 @@ describe('Regexp Tokenizer Errors', () => {
   });
 
   it('Wrong group type', () => {
-    testThrow(
-      'abcde(?>hellow)',
-      "Invalid group, character '>' after '?' at column 7",
-    );
+    testThrow('abcde(?>hellow)', "Invalid group, character '>' after '?' at column 7");
   });
 
   it('Empty group name', () => {
-    testThrow(
-      '(?<>\\d{4})',
-      "Invalid capture group name, character '>' after '<' at column 4",
-    );
+    testThrow('(?<>\\d{4})', "Invalid capture group name, character '>' after '<' at column 4");
   });
 
   it('Bad group name', () => {
-    testThrow(
-      '(?<1year>\\d{4})',
-      "Invalid capture group name, character '1' after '<' at column 4",
-    );
+    testThrow('(?<1year>\\d{4})', "Invalid capture group name, character '1' after '<' at column 4");
   });
 
   it('Unclosed group name', () => {
-    testThrow(
-      '(?<foo\\d{4})',
-      "Unclosed capture group name, expected '>', found '\\' at column 7",
-    );
+    testThrow('(?<foo\\d{4})', "Unclosed capture group name, expected '>', found '\\' at column 7");
   });
 
   it('Unclosed group terminal', () => {
-    testThrow(
-      '(?<foo',
-      "Unclosed capture group name, expected '>', found 'undefined' at column 7",
-    );
+    testThrow('(?<foo', "Unclosed capture group name, expected '>', found 'undefined' at column 7");
   });
 
   it('Bad custom character set', () => {
@@ -82,10 +67,7 @@ describe('Regexp Tokenizer Errors', () => {
       testThrow('abc\\', '\\ at end of pattern');
     });
     it('Groups', () => {
-      testThrow(
-        '(?',
-        "Invalid group, character 'undefined' after '?' at column 2",
-      );
+      testThrow('(?', "Invalid group, character 'undefined' after '?' at column 2");
     });
     it('Groups2', () => {
       testThrow('(?=', 'Unterminated group');

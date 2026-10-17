@@ -1,11 +1,10 @@
-const assert = require('assert');
-const sets = require('../dist/sets');
-const ret = require('../dist');
-const types = ret.types;
+import assert from 'assert';
+import * as sets from '../lib/sets';
+import ret, { types } from '../lib';
 
-const char = (c) => ({ type: types.CHAR, value: c.charCodeAt(0) });
+const char = (c: string) => ({ type: types.CHAR, value: c.charCodeAt(0) });
 
-const charStr = (str) => str.split('').map(char);
+const charStr = (str: string) => str.split('').map(char);
 
 describe('Regexp Tokenizer', () => {
   describe('No special characters', () => {
@@ -155,14 +154,7 @@ describe('Regexp Tokenizer', () => {
           stack: [
             {
               type: types.SET,
-              set: [
-                char('\t'),
-                char('\r'),
-                char('\n'),
-                char(LINE_SEPARATOR),
-                char(PAGE_SEPARATOR),
-                char(' '),
-              ],
+              set: [char('\t'), char('\r'), char('\n'), char(LINE_SEPARATOR), char(PAGE_SEPARATOR), char(' ')],
               not: false,
             },
           ],
@@ -331,27 +323,21 @@ describe('Regexp Tokenizer', () => {
           stack: [
             {
               type: types.GROUP,
-              stack: [
-                { type: types.REPETITION, min: 4, max: 4, value: sets.ints() },
-              ],
+              stack: [{ type: types.REPETITION, min: 4, max: 4, value: sets.ints() }],
               remember: true,
               name: 'year',
             },
             char('-'),
             {
               type: types.GROUP,
-              stack: [
-                { type: types.REPETITION, min: 2, max: 2, value: sets.ints() },
-              ],
+              stack: [{ type: types.REPETITION, min: 2, max: 2, value: sets.ints() }],
               remember: true,
               name: 'month',
             },
             char('-'),
             {
               type: types.GROUP,
-              stack: [
-                { type: types.REPETITION, min: 2, max: 2, value: sets.ints() },
-              ],
+              stack: [{ type: types.REPETITION, min: 2, max: 2, value: sets.ints() }],
               remember: true,
               name: 'day',
             },
@@ -406,10 +392,11 @@ describe('Regexp Tokenizer', () => {
         const t = ret('pika\\.\\.\\. chu{3,20}!{1,2}');
         assert.deepEqual(t, {
           type: types.ROOT,
-          stack: charStr('pika... ch').concat([
+          stack: [
+            ...charStr('pika... ch'),
             { type: types.REPETITION, min: 3, max: 20, value: char('u') },
             { type: types.REPETITION, min: 1, max: 2, value: char('!') },
-          ]),
+          ],
         });
       });
     });
@@ -431,7 +418,8 @@ describe('Regexp Tokenizer', () => {
         const t = ret('hey(?: you)?');
         assert.deepEqual(t, {
           type: types.ROOT,
-          stack: charStr('hey').concat([
+          stack: [
+            ...charStr('hey'),
             {
               type: types.REPETITION,
               min: 0,
@@ -442,7 +430,7 @@ describe('Regexp Tokenizer', () => {
                 stack: charStr(' you'),
               },
             },
-          ]),
+          ],
         });
       });
     });

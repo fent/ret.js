@@ -129,6 +129,9 @@ describe('Regexp Reconstruction', () => {
         describe('? (Optional)', () => inverseTestFactory('hey(?: you)?'));
         describe('+ (At least one)', () => inverseTestFactory('(no )+'));
         describe('* (Any amount)', () => inverseTestFactory('XF*D'));
+        describe('Lazy quantifiers', () => {
+          multiInverseTestFactory(['a+?', 'b*?', 'c??', 'd{2,5}?', 'e{2,}?', 'f{2}?']);
+        });
       });
       // Describe('Lookarounds', () => {
       //   multiInverseTestFactory([

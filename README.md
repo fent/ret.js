@@ -164,8 +164,11 @@ Used in set tokens to specify a character range. `from` and `to` are character c
   "min": 0,
   "max": Infinity,
   "value": token,
+  "lazy": false,
 }
 ```
+
+If a quantifier is lazy / non-greedy (such as `+?`, `*?`, `??`, or `{n,m}?`), `lazy` will be set to `true`.
 
 ### REFERENCE
 
@@ -194,7 +197,7 @@ Represents a single character token. `value` is the character code. This might s
 ret.js will throw errors if given a string with an invalid regular expression. All possible errors are
 
 * Invalid group. When a group with an immediate `?` character is followed by an invalid character. It can only be followed by `!`, `=`, or `:`. Example: `/(?_abc)/`
-* Nothing to repeat. Thrown when a repetitional token is used as the first token in the current clause, as in right in the beginning of the regexp or group, or right after a pipe. Example: `/foo|?bar/`, `/{1,3}foo|bar/`, `/foo(+bar)/`
+* Nothing to repeat. Thrown when a repetitional token is used as the first token in the current clause (at the beginning of a regexp or group, or right after a pipe), or immediately following an already lazy repetitional. Example: `/foo|?bar/`, `/{1,3}foo|bar/`, `/foo(+bar)/`, `/foo+??/`
 * Unmatched ). A group was not opened, but was closed. Example: `/hello)2u/`
 * Unterminated group. A group was not closed. Example: `/(1(23)4/`
 * Unterminated character class. A custom character set was not closed. Example: `/[abc/`

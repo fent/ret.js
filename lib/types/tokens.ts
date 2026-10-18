@@ -39,6 +39,7 @@ export type Repetition = Base<types.REPETITION, {
   min: number;
   max: number;
   value: Token;
+  lazy?: boolean;
 }>
 
 export type Position = ValueType<types.POSITION, '$' | '^' | 'b' | 'B'>

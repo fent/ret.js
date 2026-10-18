@@ -1,5 +1,5 @@
 import * as util from './util';
-import { Group, types, Root, Token, Reference, Char } from './types';
+import { Group, types, Root, Token, Reference, Char, Repetition } from './types';
 import * as sets from './sets';
 
 type ReferenceQueue = { reference: (Reference | Char), stack: Token[], index: number }[];
@@ -377,9 +377,18 @@ export const tokenizer = (regexpStr: string): Root => {
         break;
       }
 
-      case '?':
+      case '?': {
         if (last.length === 0) {
           repeatErr(i);
+        }
+        const lastToken = last[last.length - 1];
+        if (lastToken && lastToken.type === types.REPETITION) {
+          const repetition = lastToken as Repetition;
+          if (repetition.lazy) {
+            repeatErr(i);
+          }
+          repetition.lazy = true;
+          break;
         }
         last.push({
           type: types.REPETITION,
@@ -388,6 +397,7 @@ export const tokenizer = (regexpStr: string): Root => {
           value: last.pop(),
         });
         break;
+      }
 
       case '+':
         if (last.length === 0) {

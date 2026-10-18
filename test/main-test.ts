@@ -492,6 +492,72 @@ describe('Regexp Tokenizer', () => {
         });
       });
     });
+
+    describe('Lazy repetitional', () => {
+      it('+? (At least one, lazy)', () => {
+        const t = ret('a+?');
+        assert.deepEqual(t, {
+          type: types.ROOT,
+          stack: [
+            {
+              type: types.REPETITION,
+              min: 1,
+              max: Infinity,
+              value: char('a'),
+              lazy: true,
+            },
+          ],
+        });
+      });
+
+      it('*? (Any amount, lazy)', () => {
+        const t = ret('b*?');
+        assert.deepEqual(t, {
+          type: types.ROOT,
+          stack: [
+            {
+              type: types.REPETITION,
+              min: 0,
+              max: Infinity,
+              value: char('b'),
+              lazy: true,
+            },
+          ],
+        });
+      });
+
+      it('?? (Optional, lazy)', () => {
+        const t = ret('c??');
+        assert.deepEqual(t, {
+          type: types.ROOT,
+          stack: [
+            {
+              type: types.REPETITION,
+              min: 0,
+              max: 1,
+              value: char('c'),
+              lazy: true,
+            },
+          ],
+        });
+      });
+
+      it('{min,max}? (Custom range, lazy)', () => {
+        const t = ret('d{2,5}?');
+        assert.deepEqual(t, {
+          type: types.ROOT,
+          stack: [
+            {
+              type: types.REPETITION,
+              min: 2,
+              max: 5,
+              value: char('d'),
+              lazy: true,
+            },
+          ],
+        });
+      });
+    });
   });
 
   describe('Reference', () => {

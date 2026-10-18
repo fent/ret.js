@@ -72,6 +72,9 @@ export const reconstruct = (token: Tokens | Range): string => {
       } else {
         endWith = `{${min},${max}}`;
       }
+      if (token.lazy) {
+        endWith += '?';
+      }
       return `${reconstruct(token.value)}${endWith}`;
     }
     case types.RANGE:

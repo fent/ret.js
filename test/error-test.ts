@@ -27,6 +27,9 @@ describe('Regexp Tokenizer Errors', () => {
     it('with custom repetitional', () => {
       testThrow('ok({3}no)', 'Nothing to repeat at column 3');
     });
+    it('with already lazy repetitional', () => {
+      testThrow('a+??', 'Nothing to repeat at column 3');
+    });
   });
 
   describe('Bad grouping', () => {

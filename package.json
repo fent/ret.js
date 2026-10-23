@@ -19,24 +19,26 @@
     "dist"
   ],
   "scripts": {
-    "test": "nyc --extension .ts --reporter=lcov --reporter=text-summary vows -- --spec test/*-test.js",
-    "build": "tsc",
-    "prepare": "tsc",
+    "test": "nyc --extension .ts --reporter=lcov --reporter=text-summary npm run test:unit",
+    "test:unit": "mocha --require ts-node/register test/*-test.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "prepare": "tsc -p tsconfig.build.json",
     "lint": "eslint ./lib ./test",
     "lint:fix": "eslint --fix ./lib ./test"
   },
   "devDependencies": {
+    "@types/mocha": "^10.0.10",
     "@types/node": "^14.11.8",
     "@typescript-eslint/eslint-plugin": "^4.11.1",
     "@typescript-eslint/parser": "^4.11.1",
     "eslint": "^7.16.0",
-    "nyc": "^14.1.1",
-    "typescript": "^4.0.3",
-    "vows": "^0.8.3"
+    "mocha": "^12.0.3",
+    "nyc": "^18.0.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
   },
   "engines": {
     "node": ">=10"
   },
-  "license": "MIT",
-  "dependencies": {}
+  "license": "MIT"
 }

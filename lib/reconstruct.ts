@@ -1,4 +1,4 @@
-import { types, Root, Token, Tokens, Group } from './types';
+import { types, Root, Token, Tokens, Group, Range } from './types';
 import { writeSetTokens, setChar } from './write-set-tokens';
 
 const reduceStack = (stack: Token[]): string => stack.map(reconstruct).join('');
@@ -13,7 +13,7 @@ const createAlternate = (token: Root | Group): string => {
   }
 };
 
-export const reconstruct = (token: Tokens): string => {
+export const reconstruct = (token: Tokens | Range): string => {
   switch (token.type) {
     case types.ROOT:
       return createAlternate(token);

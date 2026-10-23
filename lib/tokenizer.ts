@@ -241,15 +241,6 @@ export const tokenizer = (regexpStr: string): Root => {
               i++;
             }
 
-            if (!name) {
-              throw new SyntaxError(
-                `Invalid regular expression: /${
-                  regexpStr
-                }/: Invalid capture group name, character '${str[i]}'` +
-                ` after '<' at column ${i + 1}`,
-              );
-            }
-
             if (str[i] !== '>') {
               throw new SyntaxError(
                 `Invalid regular expression: /${

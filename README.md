@@ -107,6 +107,20 @@ Like root, it can contain an `options` key instead of `stack` if there is a pipe
 }
 ```
 
+Modifier groups such as `(?im-s:hello)` are non-capturing (`remember: false`) and have a `modifier` object:
+
+```js
+{
+  ignoreCase: true,
+  multiline: true,
+  dotAll: false,
+}
+```
+
+The properties correspond to the `i`, `m`, and `s` flags. A value of `true` enables the flag, `false` disables it, and `null` leaves it unspecified. Ordinary groups have no `modifier` property. Modifiers apply only within their group; nested groups can override them.
+
+`reconstruct` writes modifiers in `i`, `m`, `s` order, with a dash only when flags are disabled. Equivalent input spellings may therefore be normalized: `(?mi-:hello)` becomes `(?im:hello)`.
+
 ### POSITION
 
 `\b`, `\B`, `^`, and `$` specify positions in the regexp.

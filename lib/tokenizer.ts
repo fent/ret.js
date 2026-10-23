@@ -14,6 +14,16 @@ const captureGroupFirstChar = /^[a-zA-Z_$]$/i;
  */
 const captureGroupChars = /^[a-zA-Z0-9_$]$/i;
 
+/**
+ * Valid characters for group modifiers.
+ */
+const modeModifiers = /^[ims]$/;
+const modifierProperties = {
+  i: 'ignoreCase',
+  m: 'multiline',
+  s: 'dotAll',
+} as const;
+
 const digit = /\d/;
 
 /**
@@ -42,8 +52,49 @@ export const tokenizer = (regexpStr: string): Root => {
     );
   };
 
+  const tokenizeModifiers = (group: Group, index: number): number => {
+    const modifier: NonNullable<Group['modifier']> = {
+      ignoreCase: null,
+      multiline: null,
+      dotAll: null,
+    };
+    let enable = true;
+    let hasFlag = false;
+    while (index < str.length) {
+      const flag = str[index];
+      // Modifier syntax must be literal, even though escapes in the body are decoded.
+      if (regexpStr[sourceMap[index]] !== flag) break;
+      if (modeModifiers.test(flag)) {
+        const property = modifierProperties[flag as keyof typeof modifierProperties];
+        if (modifier[property] !== null) {
+          throw new SyntaxError(`Invalid regular expression: /${regexpStr}/: Repeated flag in flag group`);
+        }
+        modifier[property] = enable;
+        hasFlag = true;
+      } else if (flag === '-') {
+        if (!enable) {
+          throw new SyntaxError(`Invalid regular expression: /${regexpStr}/: Multiple dashes in flag group`);
+        }
+        enable = false;
+      } else {
+        break;
+      }
+      index++;
+    }
+    if (!hasFlag && str[index] === ':' && regexpStr[sourceMap[index]] === ':') {
+      throw new SyntaxError(`Invalid regular expression: /${regexpStr}/: Invalid flag group`);
+    }
+    if (str[index] !== ':' || regexpStr[sourceMap[index]] !== ':') {
+      throw new SyntaxError(`Invalid regular expression: /${regexpStr}/: Invalid group`);
+    }
+    group.modifier = modifier;
+    group.remember = false;
+    return index + 1;
+  };
+
   // Decode a few escaped characters.
-  let str = util.strToChars(regexpStr);
+  const sourceMap: number[] = [];
+  let str = util.strToChars(regexpStr, sourceMap);
 
   // Iterate through each character in string.
   while (i < str.length) {
@@ -213,6 +264,8 @@ export const tokenizer = (regexpStr: string): Root => {
             i++;
           } else if (c === ':') {
             group.remember = false;
+          } else if (modeModifiers.test(c) || c === '-') {
+            i = tokenizeModifiers(group, i - 1);
           } else {
             throw new SyntaxError(
               `Invalid regular expression: /${

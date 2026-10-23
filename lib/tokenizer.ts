@@ -17,7 +17,12 @@ const captureGroupChars = /^[a-zA-Z0-9_$]$/i;
 /**
  * Valid characters for group modifiers.
  */
-const modeModifiers = /^(i|m|s)$/i;
+const modeModifiers = /^[ims]$/;
+const modifierProperties = {
+  i: 'ignoreCase',
+  m: 'multiline',
+  s: 'dotAll',
+} as const;
 
 const digit = /\d/;
 
@@ -47,41 +52,43 @@ export const tokenizer = (regexpStr: string): Root => {
     );
   };
 
-  const modifierErr = (idx: number) => {
-    throw new SyntaxError(
-      `Invalid regular expression: /${
-        regexpStr
-      }/: Unknown group modifier flag, expected 'i', or 'm', or 's', found` +
-      ` '${str[idx]}' at column ${idx + 1}`,
-    );
-  }
-
-  const tokenizeModifiers = (group: Group, i: number, enable: boolean): number => {
-    group[enable ? 'enableStack' : 'disableStack'] = [];
-
-    while (i < str.length && modeModifiers.test(str[i])) {
-      const char: Char = {
-        type: types.CHAR,
-        value: str[i].charCodeAt(0),
-      };
-      group[enable ? 'enableStack' : 'disableStack'].push(char);
-      i++;
+  const tokenizeModifiers = (group: Group, index: number): number => {
+    const modifier: NonNullable<Group['modifier']> = {
+      ignoreCase: null,
+      multiline: null,
+      dotAll: null,
+    };
+    let enable = true;
+    let hasFlag = false;
+    while (index < str.length) {
+      const flag = str[index];
+      if (modeModifiers.test(flag)) {
+        const property = modifierProperties[flag as keyof typeof modifierProperties];
+        if (modifier[property] !== null) {
+          throw new SyntaxError(`Invalid regular expression: /${regexpStr}/: Repeated flag in flag group`);
+        }
+        modifier[property] = enable;
+        hasFlag = true;
+      } else if (flag === '-') {
+        if (!enable) {
+          throw new SyntaxError(`Invalid regular expression: /${regexpStr}/: Multiple dashes in flag group`);
+        }
+        enable = false;
+      } else {
+        break;
+      }
+      index++;
     }
-    
-    if (str[i] !== ':' && ((str[i] !== '-' && enable) || (!enable))) {
-      modifierErr(i);
+    if (!hasFlag && str[index] === ':') {
+      throw new SyntaxError(`Invalid regular expression: /${regexpStr}/: Invalid flag group`);
     }
-
-    return i;
-  }
-
-  const enableModifers = (group: Group, i: number): number => {
-    return tokenizeModifiers(group, i, true);
-  }
-
-  const disableModifers = (group: Group, i: number): number => {
-    return tokenizeModifiers(group, i, false);
-  }
+    if (str[index] !== ':') {
+      throw new SyntaxError(`Invalid regular expression: /${regexpStr}/: Invalid group`);
+    }
+    group.modifier = modifier;
+    group.remember = false;
+    return index + 1;
+  };
 
   // Decode a few escaped characters.
   let str = util.strToChars(regexpStr);
@@ -254,26 +261,8 @@ export const tokenizer = (regexpStr: string): Root => {
             i++;
           } else if (c === ':') {
             group.remember = false;
-          } else if (modeModifiers.test(c)) {
-            // the index logic is complicated
-            i = enableModifers(group, --i); // i is ahead of c so we decrement
-            if (str[i] === '-') {
-              group.dash = true;
-              i = disableModifers(group, ++i) +1; // increment move off of '-', add 1 move index
-              if (group.disableStack.length === 0) {
-                group.disableStack = undefined;
-              }
-            } else if (str[i] === ':') { // like (?i:)
-              i++;
-            } else {
-              modifierErr(i);
-            }
-          } else if (c === '-') {
-            group.dash = true;
-            i = disableModifers(group, i) +1; // no increment here because i is ahead of c
-            if (group.disableStack.length === 0) {
-              group.disableStack = undefined;
-            }
+          } else if (modeModifiers.test(c) || c === '-') {
+            i = tokenizeModifiers(group, i - 1);
           } else {
             throw new SyntaxError(
               `Invalid regular expression: /${

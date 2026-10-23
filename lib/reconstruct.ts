@@ -34,22 +34,27 @@ export const reconstruct = (token: Tokens | Range): string => {
     case types.SET:
       return writeSetTokens(token);
     case types.GROUP: {
-      // Check token.remember
+      let modifier = '';
+      if (token.modifier) {
+        const properties = ['ignoreCase', 'multiline', 'dotAll'] as const;
+        let enabled = '';
+        let disabled = '';
+        properties.forEach((property, index) => {
+          if (token.modifier[property] === true) {
+            enabled += 'ims'[index];
+          } else if (token.modifier[property] === false) {
+            disabled += 'ims'[index];
+          }
+        });
+        modifier = enabled + (disabled ? `-${disabled}` : '');
+      }
       const prefix =
         token.name ? `?<${token.name}>` :
           token.remember ? '' :
             token.followedBy ? '?=' :
               token.notFollowedBy ? '?!' :
-                '?:';
-      let preprefix = '';
-      if (token.enableStack || token.disableStack) {
-        preprefix += '?';
-        if (token.enableStack) preprefix += reduceStack(token.enableStack);
-        if (token.dash) preprefix += '-';
-        if (token.disableStack) preprefix += reduceStack(token.disableStack);
-        preprefix += ':';
-      }
-      return `(${preprefix+prefix}${createAlternate(token)})`;
+                modifier ? `?${modifier}:` : '?:';
+      return `(${prefix}${createAlternate(token)})`;
     }
     case types.REPETITION: {
       const { min, max } = token;

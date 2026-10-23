@@ -62,6 +62,8 @@ export const tokenizer = (regexpStr: string): Root => {
     let hasFlag = false;
     while (index < str.length) {
       const flag = str[index];
+      // Modifier syntax must be literal, even though escapes in the body are decoded.
+      if (regexpStr[sourceMap[index]] !== flag) break;
       if (modeModifiers.test(flag)) {
         const property = modifierProperties[flag as keyof typeof modifierProperties];
         if (modifier[property] !== null) {
@@ -79,10 +81,10 @@ export const tokenizer = (regexpStr: string): Root => {
       }
       index++;
     }
-    if (!hasFlag && str[index] === ':') {
+    if (!hasFlag && str[index] === ':' && regexpStr[sourceMap[index]] === ':') {
       throw new SyntaxError(`Invalid regular expression: /${regexpStr}/: Invalid flag group`);
     }
-    if (str[index] !== ':') {
+    if (str[index] !== ':' || regexpStr[sourceMap[index]] !== ':') {
       throw new SyntaxError(`Invalid regular expression: /${regexpStr}/: Invalid group`);
     }
     group.modifier = modifier;
@@ -91,7 +93,8 @@ export const tokenizer = (regexpStr: string): Root => {
   };
 
   // Decode a few escaped characters.
-  let str = util.strToChars(regexpStr);
+  const sourceMap: number[] = [];
+  let str = util.strToChars(regexpStr, sourceMap);
 
   // Iterate through each character in string.
   while (i < str.length) {

@@ -79,6 +79,8 @@ describe('Group modifiers', () => {
   const invalidGroups = [
     '(?I:a)', '(?M:a)', '(?S:a)', '(?i-M:a)', '(?g:a)', '(?i-x:a)',
     '(?i>:a)', '(?i)', '(?i', '(?-', '(?i-', '(?im a)',
+    '(?\\u0069:a)', '(?\\x69:a)', '(?i\\u0069:a)', '(?i\\x2Dm:a)', '(?i\\x3Aa)',
+    '(?-\\u0069:a)', '(?i\\u003Aa)', '(?i\\m:a)',
     '(?d:a)', '(?y:a)', '(?u:a)', '(?v:a)', '(?i s:a)', '(?i\n:a)',
   ];
   for (const pattern of invalidGroups) {
@@ -146,6 +148,15 @@ describe('Group modifiers', () => {
     const tokens = ret('\\(?i:a\\)');
     assert.ok(tokens.stack.every(token => token.type === types.CHAR || token.type === types.REPETITION));
   });
+
+  for (const pattern of ['\\u0061(?i:b)', '\\x28(?i:b)', '[\\b](?i:b)', '\\\\u0069(?i:b)']) {
+    it(`keeps header positions correct after decoding ${pattern}`, () => {
+      const tokens = ret(pattern);
+      const group = tokens.stack[tokens.stack.length - 1] as Group;
+      assert.deepStrictEqual(group.modifier, { ignoreCase: true, multiline: null, dotAll: null });
+      assert.deepStrictEqual(ret(reconstruct(tokens)), tokens);
+    });
+  }
 });
 
 // Older supported Node versions cannot compile modifier groups.

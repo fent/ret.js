@@ -51,6 +51,11 @@ export const tokenizer = (regexpStr: string): Root => {
     );
   };
 
+  const modifierErr = (message: string, index: number): never => {
+    const column = sourceMap[index] ?? regexpStr.length;
+    throw new SyntaxError(`Invalid regular expression: /${regexpStr}/: ${message} at column ${column}`);
+  };
+
   const tokenizeModifiers = (group: Group, index: number): number => {
     const modifier: NonNullable<Group['modifier']> = {
       ignoreCase: null,
@@ -66,13 +71,13 @@ export const tokenizer = (regexpStr: string): Root => {
       if (isModifier(flag)) {
         const property = modifierProperties[flag];
         if (modifier[property] !== null) {
-          throw new SyntaxError(`Invalid regular expression: /${regexpStr}/: Repeated flag in flag group`);
+          modifierErr('Repeated flag in flag group', index);
         }
         modifier[property] = enable;
         hasFlag = true;
       } else if (flag === '-') {
         if (!enable) {
-          throw new SyntaxError(`Invalid regular expression: /${regexpStr}/: Multiple dashes in flag group`);
+          modifierErr('Multiple dashes in flag group', index);
         }
         enable = false;
       } else {
@@ -81,10 +86,10 @@ export const tokenizer = (regexpStr: string): Root => {
       index++;
     }
     if (!hasFlag && str[index] === ':' && regexpStr[sourceMap[index]] === ':') {
-      throw new SyntaxError(`Invalid regular expression: /${regexpStr}/: Invalid flag group`);
+      modifierErr('Invalid flag group', index);
     }
     if (str[index] !== ':' || regexpStr[sourceMap[index]] !== ':') {
-      throw new SyntaxError(`Invalid regular expression: /${regexpStr}/: Invalid group`);
+      modifierErr('Invalid group', index);
     }
     group.modifier = modifier;
     group.remember = false;

@@ -109,27 +109,57 @@ describe('Group modifiers', () => {
     });
   }
 
-  for (const pattern of ['(?ii:a)', '(?-mm:a)', '(?i-i:a)', '(?im-ms:a)', '(?s-s:a)']) {
+  const repeatedFlags: [string, number][] = [
+    ['(?ii:a)', 3], ['(?-mm:a)', 4], ['(?i-i:a)', 4], ['(?im-ms:a)', 5], ['(?s-s:a)', 4],
+  ];
+  for (const [pattern, column] of repeatedFlags) {
     it(`rejects repeated flags in ${pattern}`, () => {
       assert.throws(() => ret(pattern), {
         name: 'SyntaxError',
-        message: `Invalid regular expression: /${pattern}/: Repeated flag in flag group`,
+        message: `Invalid regular expression: /${pattern}/: Repeated flag in flag group at column ${column}`,
       });
     });
   }
 
-  const invalidFlagGroups = [
-    ['(?-:a)', 'Invalid flag group'],
-    ['(?i:m)(?-:a)', 'Invalid flag group'],
-    ['(?i--m:a)', 'Multiple dashes in flag group'],
-    ['(?i-m-s:a)', 'Multiple dashes in flag group'],
-    ['(?--:a)', 'Multiple dashes in flag group'],
+  const invalidFlagGroups: [string, string, number][] = [
+    ['(?-:a)', 'Invalid flag group', 3],
+    ['(?i:m)(?-:a)', 'Invalid flag group', 9],
+    ['(?i--m:a)', 'Multiple dashes in flag group', 4],
+    ['(?i-m-s:a)', 'Multiple dashes in flag group', 5],
+    ['(?--:a)', 'Multiple dashes in flag group', 3],
   ];
-  for (const [pattern, message] of invalidFlagGroups) {
+  for (const [pattern, message, column] of invalidFlagGroups) {
     it(`reports ${message} for ${pattern}`, () => {
       assert.throws(() => ret(pattern), {
         name: 'SyntaxError',
-        message: `Invalid regular expression: /${pattern}/: ${message}`,
+        message: `Invalid regular expression: /${pattern}/: ${message} at column ${column}`,
+      });
+    });
+  }
+
+  const errorColumns: [string, string, number][] = [
+    ['(?i-x:a)', 'Invalid group', 4],
+    ['(?i>:a)', 'Invalid group', 3],
+    ['(?im a)', 'Invalid group', 4],
+    ['(?i)', 'Invalid group', 3],
+    ['(?i', 'Invalid group', 3],
+    ['(?-', 'Invalid group', 3],
+    ['(?i-', 'Invalid group', 4],
+    ['(?i--', 'Multiple dashes in flag group', 4],
+    ['abc(?i-i:a)', 'Repeated flag in flag group', 7],
+    ['\\u0061(?i-i:a)', 'Repeated flag in flag group', 10],
+    ['\\u0028(?ii:a)', 'Repeated flag in flag group', 9],
+    ['\\u0061(?i', 'Invalid group', 9],
+    ['\\x61(?i\\u0069:a)', 'Invalid group', 7],
+    ['(?\\u0069:a)', 'Invalid group', 2],
+    ['(?i\\x3Aa)', 'Invalid group', 3],
+    ['😀(?ii:a)', 'Repeated flag in flag group', 5],
+  ];
+  for (const [pattern, message, column] of errorColumns) {
+    it(`reports original-source column ${column} for ${pattern}`, () => {
+      assert.throws(() => ret(pattern), {
+        name: 'SyntaxError',
+        message: `Invalid regular expression: /${pattern}/: ${message} at column ${column}`,
       });
     });
   }
@@ -201,6 +231,9 @@ try {
         }
       };
       const actual = category(() => ret(pattern));
+      if (actual !== 'valid') {
+        assert.throws(() => ret(pattern), / at column \d+$/);
+      }
       assert.strictEqual(actual, category(() => new RegExp(pattern)), pattern);
       if (actual === 'valid') {
         const tokens = ret(pattern);

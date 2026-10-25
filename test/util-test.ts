@@ -9,6 +9,19 @@ describe('strToChars', () => {
     assert.equal(str, '\v \xFF hellow \u00A3 \\50 \\( there  \n \\w \u0008');
   });
 
+  it('maps decoded characters back to their original source positions', () => {
+    const sourceMap: number[] = [];
+    assert.strictEqual(util.strToChars('a\\x69b\\u0028c', sourceMap), 'aib\\(c');
+    assert.deepStrictEqual(sourceMap, [0, 1, 5, 6, 6, 12]);
+  });
+
+  it('keeps source positions for escaped literals that are not decoded', () => {
+    const source = '\\\\u0069';
+    const sourceMap: number[] = [];
+    assert.strictEqual(util.strToChars(source, sourceMap), source);
+    assert.deepStrictEqual(sourceMap, Array.from(source, (_char, index) => index));
+  });
+
   it('Escaped chars in regex source remain espaced', () => {
     const str = util.strToChars(/\\xFF hellow \\u00A3 \\50 \\u0028 there \\cB \\n \\w/.source);
     assert.equal(str, '\\\\xFF hellow \\\\u00A3 \\\\50 \\\\u0028 there \\\\cB \\\\n \\\\w');

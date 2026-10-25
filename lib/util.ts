@@ -8,14 +8,26 @@ const CTRL = '@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^ ?';
  * their respective characters.
  *
  * @param {string} str
+ * @param {number[]} sourceMap Optional mapping from decoded character positions to source positions
  * @returns {string}
  */
-export const strToChars = (str: string): string => {
+export const strToChars = (str: string, sourceMap?: number[]): string => {
   const charsRegex = /(\[\\b\])|(\\)?\\(?:u([A-F0-9]{4})|x([A-F0-9]{2})|c([@A-Z[\\\]^?])|([0tnvfr]))/g;
   type EscapedChar = '0' | 't' | 'n' | 'v' | 'f' | 'r' | undefined;
-  return str.replace(charsRegex, (s, b, lbs, a16, b16, dctrl, eslsh : EscapedChar) => {
+  let sourceIndex = 0;
+  const mapReplacement = (offset: number, source: string, replacement: string): string => {
+    if (sourceMap) {
+      while (sourceIndex < offset) sourceMap.push(sourceIndex++);
+      for (let index = 0; index < replacement.length; index++) {
+        sourceMap.push(offset + (source === replacement ? index : 0));
+      }
+      sourceIndex = offset + source.length;
+    }
+    return replacement;
+  };
+  const decoded = str.replace(charsRegex, (s, b, lbs, a16, b16, dctrl, eslsh : EscapedChar, offset: number) => {
     if (lbs) {
-      return s;
+      return mapReplacement(offset, s, s);
     }
 
     let code: number = b ? 8 :
@@ -33,8 +45,13 @@ export const strToChars = (str: string): string => {
     let c = String.fromCharCode(code);
 
     // Escape special regex characters.
-    return /[[\]{}^$.|?*+()]/.test(c) ? `\\${c}` : c;
+    const replacement = /[[\]{}^$.|?*+()]/.test(c) ? `\\${c}` : c;
+    return mapReplacement(offset, s, replacement);
   });
+  if (sourceMap) {
+    while (sourceIndex < str.length) sourceMap.push(sourceIndex++);
+  }
+  return decoded;
 };
 
 

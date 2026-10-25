@@ -14,15 +14,14 @@ const captureGroupFirstChar = /^[a-zA-Z_$]$/i;
  */
 const captureGroupChars = /^[a-zA-Z0-9_$]$/i;
 
-/**
- * Valid characters for group modifiers.
- */
-const modeModifiers = /^[ims]$/;
 const modifierProperties = {
   i: 'ignoreCase',
   m: 'multiline',
   s: 'dotAll',
 } as const;
+
+const isModifier = (flag: string): flag is keyof typeof modifierProperties =>
+  Object.prototype.hasOwnProperty.call(modifierProperties, flag);
 
 const digit = /\d/;
 
@@ -64,8 +63,8 @@ export const tokenizer = (regexpStr: string): Root => {
       const flag = str[index];
       // Modifier syntax must be literal, even though escapes in the body are decoded.
       if (regexpStr[sourceMap[index]] !== flag) break;
-      if (modeModifiers.test(flag)) {
-        const property = modifierProperties[flag as keyof typeof modifierProperties];
+      if (isModifier(flag)) {
+        const property = modifierProperties[flag];
         if (modifier[property] !== null) {
           throw new SyntaxError(`Invalid regular expression: /${regexpStr}/: Repeated flag in flag group`);
         }
@@ -264,7 +263,7 @@ export const tokenizer = (regexpStr: string): Root => {
             i++;
           } else if (c === ':') {
             group.remember = false;
-          } else if (modeModifiers.test(c) || c === '-') {
+          } else if (isModifier(c) || c === '-') {
             i = tokenizeModifiers(group, i - 1);
           } else {
             throw new SyntaxError(

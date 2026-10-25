@@ -76,6 +76,22 @@ describe('Group modifiers', () => {
     ]);
   });
 
+  it('does not treat inherited properties as modifier flags', () => {
+    const prototype = Object.prototype as { x?: string };
+    const previous = Object.getOwnPropertyDescriptor(prototype, 'x');
+    Object.defineProperty(Object.prototype, 'x', { value: 'ignoreCase', configurable: true });
+    try {
+      assert.throws(() => ret('(?x:a)'), SyntaxError);
+      assert.throws(() => ret('(?i-x:a)'), SyntaxError);
+    } finally {
+      if (previous) {
+        Object.defineProperty(Object.prototype, 'x', previous);
+      } else {
+        delete prototype.x;
+      }
+    }
+  });
+
   const invalidGroups = [
     '(?I:a)', '(?M:a)', '(?S:a)', '(?i-M:a)', '(?g:a)', '(?i-x:a)',
     '(?i>:a)', '(?i)', '(?i', '(?-', '(?i-', '(?im a)',

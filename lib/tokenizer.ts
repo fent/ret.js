@@ -57,7 +57,7 @@ export const tokenizer = (regexpStr: string): Root => {
   };
 
   const tokenizeModifiers = (group: Group, index: number): number => {
-    const modifier: NonNullable<Group['modifier']> = {
+    const modifier: Group['modifier'] = {
       ignoreCase: null,
       multiline: null,
       dotAll: null,

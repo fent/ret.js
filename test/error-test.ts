@@ -73,4 +73,24 @@ describe('Regexp Tokenizer Errors', () => {
       testThrow('(?=', 'Unterminated group');
     });
   });
+
+  it('Escaped group syntax', () => {
+    testThrow('(?\\x3Da)', 'Invalid group at column 2');
+    testThrow('\\x61(?\\x3Da)', 'Invalid group at column 6');
+    testThrow('\\x61(?\\x28a)', 'Invalid group at column 6');
+    testThrow('(?\\x21a)', 'Invalid group at column 2');
+    testThrow('(?\\x3Aa)', 'Invalid group at column 2');
+    testThrow('(?\\x3Cn>a)', 'Invalid group at column 2');
+    // \u escapes are allowed in group names, but not straight after (?.
+    testThrow('(?\\u003Da)', 'Invalid group at column 2');
+    testThrow('\\x61(?b)', "Invalid group, character 'b' after '?' at column 6");
+  });
+
+  it('Escaped group name syntax', () => {
+    testThrow('(?<\\x61>a)', "Invalid capture group name, character '\\' after '<' at column 4");
+    testThrow('(?<a\\x62>c)', "Unclosed capture group name, expected '>', found '\\' at column 5");
+    testThrow('(?<n\\x3Ea)', "Unclosed capture group name, expected '>', found '\\' at column 5");
+    testThrow('(?<n\\x3E>a)', "Unclosed capture group name, expected '>', found '\\' at column 5");
+    testThrow('\\x61(?<1a>b)', "Invalid capture group name, character '1' after '<' at column 8");
+  });
 });

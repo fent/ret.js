@@ -226,12 +226,18 @@ export const tokenizer = (regexpStr: string): Root => {
           c = str[i + 1];
           i += 2;
 
-          // Match if followed by.
+          // A lookbehind, `(?<=` or `(?<!`, is handled like the matching lookahead.
+          if (c === '<' && (str[i] === '=' || str[i] === '!') && regexpStr[sourceMap[i]] === str[i]) {
+            group.lookBehind = true;
+            c = str[i++];
+          }
+
+          // Match if followed by (or preceded by, for a lookbehind).
           if (c === '=') {
             group.followedBy = true;
             group.remember = false;
 
-          // Match if not followed by.
+          // Match if not followed by (or not preceded by, for a lookbehind).
           } else if (c === '!') {
             group.notFollowedBy = true;
             group.remember = false;

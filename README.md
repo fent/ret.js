@@ -79,7 +79,7 @@ Only used in the root of the regexp. This is needed due to the posibility of the
 
 ### GROUP
 
-Groups contain tokens that are inside of a parenthesis. If the group begins with `?` followed by another character, it's a special type of group. A ':' tells the group not to be remembered when `exec` is used. '=' means the previous token matches only if followed by this group, and '!' means the previous token matches only if NOT followed.
+Groups contain tokens that are inside of a parenthesis. If the group begins with `?` followed by another character, it's a special type of group. A ':' tells the group not to be remembered when `exec` is used. '=' means the previous token matches only if followed by this group, and '!' means the previous token matches only if NOT followed. '<=' means the next token matches only if preceded by this group, and '<!' means it matches only if NOT preceded by it. They set `followedBy` or `notFollowedBy` like a lookahead, plus `lookBehind: true`. Check `lookBehind` before treating `followedBy` or `notFollowedBy` as a lookahead.
 
 Like root, it can contain an `options` key instead of `stack` if there is a pipe.
 
@@ -193,7 +193,7 @@ Represents a single character token. `value` is the character code. This might s
 
 ret.js will throw errors if given a string with an invalid regular expression. All possible errors are
 
-* Invalid group. When a group with an immediate `?` character is followed by an invalid character. It can only be followed by `!`, `=`, or `:`. Example: `/(?_abc)/`
+* Invalid group. When a group with an immediate `?` character is followed by an invalid character. It can only be followed by `:`, `=`, `!`, `<=`, `<!`, `<` and a group name, or modifier flags (`i`, `m`, `s`, optionally with `-`). Example: `/(?_abc)/`
 * Nothing to repeat. Thrown when a repetitional token is used as the first token in the current clause, as in right in the beginning of the regexp or group, or right after a pipe. Example: `/foo|?bar/`, `/{1,3}foo|bar/`, `/foo(+bar)/`
 * Unmatched ). A group was not opened, but was closed. Example: `/hello)2u/`
 * Unterminated group. A group was not closed. Example: `/(1(23)4/`
@@ -205,8 +205,9 @@ Regular expressions follow the [JavaScript syntax](https://developer.mozilla.org
 
 The following latest JavaScript additions are not supported yet:
 * `\p` and `\P`: [Unicode property escapes](https://github.com/tc39/proposal-regexp-unicode-property-escapes)
-* `(?<group>)` and `\k<group>`: [Named groups](https://github.com/tc39/proposal-regexp-named-groups)
-* `(?<=)` and `(?<!)`: [Negative lookbehind assertions](https://github.com/tc39/proposal-regexp-lookbehind)
+* `\k<group>`: [Named group back-references](https://github.com/tc39/proposal-regexp-named-groups)
+
+Named groups `(?<name>...)` are parsed, but they are not yet counted when numbering back-references such as `\1`.
 
 # Examples
 
@@ -401,7 +402,7 @@ The following latest JavaScript additions are not supported yet:
   "type": ret.types.ROOT,
   "stack": [{ 
     "type": ret.types.GROUP, 
-    "stack": { "type": ret.types.CHAR, "value": 97 },
+    "stack": [{ "type": ret.types.CHAR, "value": 97 }],
     "remember": true
   }]
 }
@@ -414,7 +415,7 @@ The following latest JavaScript additions are not supported yet:
   "type": ret.types.ROOT,
   "stack": [{ 
     "type": ret.types.GROUP, 
-    "stack": { "type": ret.types.CHAR, "value": 97 },
+    "stack": [{ "type": ret.types.CHAR, "value": 97 }],
     "remember": false
   }]
 }
@@ -427,7 +428,7 @@ The following latest JavaScript additions are not supported yet:
   "type": ret.types.ROOT,
   "stack": [{ 
     "type": ret.types.GROUP, 
-    "stack": { "type": ret.types.CHAR, "value": 97 },
+    "stack": [{ "type": ret.types.CHAR, "value": 97 }],
     "remember": false,
     "followedBy": true
   }]
@@ -441,9 +442,24 @@ The following latest JavaScript additions are not supported yet:
   "type": ret.types.ROOT,
   "stack": [{ 
     "type": ret.types.GROUP, 
-    "stack": { "type": ret.types.CHAR, "value": 97 },
+    "stack": [{ "type": ret.types.CHAR, "value": 97 }],
     "remember": false,
     "notFollowedBy": true
+  }]
+}
+```
+
+`/(?<=a)/`
+
+```js
+{
+  "type": ret.types.ROOT,
+  "stack": [{ 
+    "type": ret.types.GROUP, 
+    "stack": [{ "type": ret.types.CHAR, "value": 97 }],
+    "remember": false,
+    "followedBy": true,
+    "lookBehind": true
   }]
 }
 ```

@@ -72,5 +72,17 @@ describe('Regexp Tokenizer Errors', () => {
     it('Groups2', () => {
       testThrow('(?=', 'Unterminated group');
     });
+    it('Lookbehind groups', () => {
+      testThrow('(?<=', 'Unterminated group');
+      testThrow('(?<!', 'Unterminated group');
+      testThrow('(?<=a', 'Unterminated group');
+      testThrow('(?<=a))', 'Unmatched ) at column 6');
+    });
+  });
+
+  it('Escaped lookbehind syntax', () => {
+    // An escaped = or ! does not start a lookbehind; the exact message depends on how the name is reported.
+    assert.throws(() => ret('(?<\\x3Da)'), /Invalid capture group name/);
+    assert.throws(() => ret('(?<\\x21a)'), /Invalid capture group name/);
   });
 });

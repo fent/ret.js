@@ -130,15 +130,24 @@ describe('Regexp Reconstruction', () => {
         describe('+ (At least one)', () => inverseTestFactory('(no )+'));
         describe('* (Any amount)', () => inverseTestFactory('XF*D'));
       });
-      // Describe('Lookarounds', () => {
-      //   multiInverseTestFactory([
-      //     '(?<=a)b',
-      //     '(?<=text)',
-      //     '(?<!a)b',
-      //     '(?<!text)',
-      //     '(?<!ab{2,4}c{3,5}d)test'
-      //   ]),
-      // });
+      describe('Lookarounds', () => {
+        multiInverseTestFactory([
+          '(?<=a)b',
+          '(?<=text)',
+          '(?<!a)b',
+          '(?<!text)',
+          '(?<!ab{2,4}c{3,5}d)test',
+          '(?<=a|b)c',
+          '(?<=a)(b)\\1',
+          '(?<=(a))\\1',
+          '(?<=a{2,3})b',
+          '(?i:(?<=a)b)',
+          '(?<=(?i:a))b',
+          '(?=(?<=a)b)(?<!(?=c)c)',
+          '(?<=)a(?<!)',
+          '(?<=a)(?<year>\\d{4})',
+        ]);
+      });
       describe('Unicode Characters', () => {
         multiInverseTestFactory([
           //  '[A\\xA9\\u2603]|\\uD834\\uDF06',

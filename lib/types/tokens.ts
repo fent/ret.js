@@ -14,8 +14,11 @@ export type Group = Base<types.GROUP, {
   stack?: Token[];
   options?: Token[][];
   remember: boolean;
+  /** `(?=...)`, or `(?<=...)` with `lookBehind`. Zero-width; `remember` is false. */
   followedBy?: boolean;
+  /** `(?!...)`, or `(?<!...)` with `lookBehind`. Zero-width; `remember` is false. */
   notFollowedBy?: boolean;
+  /** With `followedBy` or `notFollowedBy`: the assertion looks behind the current position. */
   lookBehind?: boolean;
   name?: string;
   modifier?: {

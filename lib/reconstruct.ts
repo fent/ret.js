@@ -48,11 +48,12 @@ export const reconstruct = (token: Tokens | Range): string => {
         });
         modifier = enabled + (disabled ? `-${disabled}` : '');
       }
+      const lookaround = token.lookBehind ? '?<' : '?';
       const prefix =
         token.name ? `?<${token.name}>` :
           token.remember ? '' :
-            token.followedBy ? '?=' :
-              token.notFollowedBy ? '?!' :
+            token.followedBy ? `${lookaround}=` :
+              token.notFollowedBy ? `${lookaround}!` :
                 modifier ? `?${modifier}:` : '?:';
       return `(${prefix}${createAlternate(token)})`;
     }

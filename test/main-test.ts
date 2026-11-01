@@ -253,6 +253,122 @@ describe('Regexp Tokenizer', () => {
       });
     });
 
+    describe('matched next clause if preceded by this', () => {
+      it('Returns a lookbehind group', () => {
+        const t = ret('(?<=\\$)\\d');
+        assert.deepEqual(t, {
+          type: types.ROOT,
+          stack: [
+            {
+              type: types.GROUP,
+              remember: false,
+              followedBy: true,
+              lookBehind: true,
+              stack: [char('$')],
+            },
+            sets.ints(),
+          ],
+        });
+      });
+    });
+
+    describe('matched next clause if not preceded by this', () => {
+      it('Returns a lookbehind group', () => {
+        const t = ret('(?<!d)baz');
+        assert.deepEqual(t, {
+          type: types.ROOT,
+          stack: [
+            {
+              type: types.GROUP,
+              remember: false,
+              notFollowedBy: true,
+              lookBehind: true,
+              stack: [char('d')],
+            },
+            ...charStr('baz'),
+          ],
+        });
+      });
+    });
+
+    describe('lookbehind inside a lookahead, and the reverse', () => {
+      it('Nests both kinds of group', () => {
+        const t = ret('(?=(?<=a)b)(?<!(?=c)c)');
+        assert.deepEqual(t, {
+          type: types.ROOT,
+          stack: [
+            {
+              type: types.GROUP,
+              remember: false,
+              followedBy: true,
+              stack: [
+                {
+                  type: types.GROUP,
+                  remember: false,
+                  followedBy: true,
+                  lookBehind: true,
+                  stack: [char('a')],
+                },
+                char('b'),
+              ],
+            },
+            {
+              type: types.GROUP,
+              remember: false,
+              notFollowedBy: true,
+              lookBehind: true,
+              stack: [
+                {
+                  type: types.GROUP,
+                  remember: false,
+                  followedBy: true,
+                  stack: [char('c')],
+                },
+                char('c'),
+              ],
+            },
+          ],
+        });
+      });
+    });
+
+    describe('lookbehind with alternation', () => {
+      it('Returns a lookbehind group with options', () => {
+        const t = ret('(?<!a|bc)');
+        assert.deepEqual(t, {
+          type: types.ROOT,
+          stack: [
+            {
+              type: types.GROUP,
+              remember: false,
+              notFollowedBy: true,
+              lookBehind: true,
+              options: [[char('a')], charStr('bc')],
+            },
+          ],
+        });
+      });
+    });
+
+    describe('empty lookbehind', () => {
+      it('Returns a lookbehind group with an empty stack', () => {
+        const t = ret('(?<=)a');
+        assert.deepEqual(t, {
+          type: types.ROOT,
+          stack: [
+            {
+              type: types.GROUP,
+              remember: false,
+              followedBy: true,
+              lookBehind: true,
+              stack: [],
+            },
+            char('a'),
+          ],
+        });
+      });
+    });
+
     describe('matched next clause', () => {
       it('Returns a group', () => {
         const t = ret('hello(?= there)');
@@ -523,6 +639,40 @@ describe('Regexp Tokenizer', () => {
           char('<'),
           { type: types.REFERENCE, value: 1 },
           char('>'),
+        ],
+      });
+    });
+  });
+
+  describe('NOT Reference to a lookbehind', () => {
+    it('Does not count the lookbehind as a group', () => {
+      const t = ret('(?<=a)(b)\\2');
+      assert.deepEqual(t, {
+        type: types.ROOT,
+        stack: [
+          { type: types.GROUP, remember: false, followedBy: true, lookBehind: true, stack: [char('a')] },
+          { type: types.GROUP, remember: true, stack: [char('b')] },
+          { type: types.CHAR, value: 2 },
+        ],
+      });
+    });
+  });
+
+  describe('Reference to a group inside a lookbehind', () => {
+    it('Counts the group inside the lookbehind', () => {
+      const t = ret('(?<!(a))(b)\\2');
+      assert.deepEqual(t, {
+        type: types.ROOT,
+        stack: [
+          {
+            type: types.GROUP,
+            remember: false,
+            notFollowedBy: true,
+            lookBehind: true,
+            stack: [{ type: types.GROUP, remember: true, stack: [char('a')] }],
+          },
+          { type: types.GROUP, remember: true, stack: [char('b')] },
+          { type: types.REFERENCE, value: 2 },
         ],
       });
     });

@@ -6,9 +6,11 @@ import { tokenizer } from './tokenizer';
 import { reconstruct } from './reconstruct';
 export * from './types';
 
-export default tokenizer;
+const ret = Object.assign(tokenizer, { types, reconstruct });
+
+export default ret;
 export { types };
 
-module.exports = tokenizer;
+module.exports = ret;
 module.exports.types = types;
 module.exports.reconstruct = reconstruct;

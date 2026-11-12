@@ -19,12 +19,13 @@
     "dist"
   ],
   "scripts": {
-    "test": "nyc --extension .ts --reporter=lcov --reporter=text-summary npm run test:unit",
-    "test:unit": "mocha --require ts-node/register test/*-test.ts",
+    "test": "nyc --extension .ts --reporter=lcov --reporter=text-summary npm run test:unit && npm run test:package",
+    "test:unit": "mocha --require ts-node/register --ignore test/export-test.ts test/*-test.ts",
     "build": "tsc -p tsconfig.build.json",
     "prepare": "tsc -p tsconfig.build.json",
     "lint": "eslint ./lib ./test",
-    "lint:fix": "eslint --fix ./lib ./test"
+    "lint:fix": "eslint --fix ./lib ./test",
+    "test:package": "mocha --require ts-node/register test/export-test.ts"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",

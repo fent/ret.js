@@ -9,6 +9,20 @@ describe('strToChars', () => {
     assert.equal(str, '\v \xFF hellow \u00A3 \\50 \\( there  \n \\w \u0008');
   });
 
+  it('Converts lower case hex digits and control letters', () => {
+    assert.equal(util.strToChars('\\xff \\u00a3 \\u00Ab \\u0028 \\cb'), '\xFF \u00A3 \u00AB \\( \u0002');
+  });
+
+  it('Escapes a decoded backslash and dash', () => {
+    assert.equal(util.strToChars('\\x5C \\u005c'), '\\\\ \\\\');
+    assert.equal(util.strToChars('[a\\x2Dz]'), '[a\\-z]');
+  });
+
+  it('Converts escaped chars after an escaped backslash', () => {
+    assert.equal(util.strToChars('\\\\\\x41'), '\\\\A');
+    assert.equal(util.strToChars('\\\\x41'), '\\\\x41');
+  });
+
   it('maps decoded characters back to their original source positions', () => {
     const sourceMap: number[] = [];
     assert.strictEqual(util.strToChars('a\\x69b\\u0028c', sourceMap), 'aib\\(c');

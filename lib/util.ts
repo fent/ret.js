@@ -12,7 +12,8 @@ const CTRL = '@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^ ?';
  * @returns {string}
  */
 export const strToChars = (str: string, sourceMap?: number[]): string => {
-  const charsRegex = /(\[\\b\])|(\\)?\\(?:u([A-F0-9]{4})|x([A-F0-9]{2})|c([@A-Z[\\\]^?])|([0tnvfr]))/g;
+  const charsRegex =
+    /(\[\\b\])|(\\\\)|\\(?:u([A-Fa-f0-9]{4})|x([A-Fa-f0-9]{2})|c([@A-Za-z[\\\]^?])|([0tnvfr]))/g;
   type EscapedChar = '0' | 't' | 'n' | 'v' | 'f' | 'r' | undefined;
   let sourceIndex = 0;
   const mapReplacement = (offset: number, source: string, replacement: string): string => {
@@ -25,15 +26,16 @@ export const strToChars = (str: string, sourceMap?: number[]): string => {
     }
     return replacement;
   };
-  const decoded = str.replace(charsRegex, (s, b, lbs, a16, b16, dctrl, eslsh : EscapedChar, offset: number) => {
-    if (lbs) {
+  const decoded = str.replace(charsRegex, (s, b, backslash, a16, b16, dctrl, eslsh : EscapedChar, offset: number) => {
+    // An escaped backslash, what follows is not part of the escape.
+    if (backslash) {
       return mapReplacement(offset, s, s);
     }
 
     let code: number = b ? 8 :
       a16 ? parseInt(a16, 16) :
         b16 ? parseInt(b16, 16) :
-          dctrl ? CTRL.indexOf(dctrl) : {
+          dctrl ? CTRL.indexOf(dctrl.toUpperCase()) : {
             0: 0,
             t: 9,
             n: 10,
@@ -45,7 +47,7 @@ export const strToChars = (str: string, sourceMap?: number[]): string => {
     let c = String.fromCharCode(code);
 
     // Escape special regex characters.
-    const replacement = /[[\]{}^$.|?*+()]/.test(c) ? `\\${c}` : c;
+    const replacement = /[[\]{}^$.|?*+()\\-]/.test(c) ? `\\${c}` : c;
     return mapReplacement(offset, s, replacement);
   });
   if (sourceMap) {
